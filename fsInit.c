@@ -72,10 +72,14 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 
 	extentTable->extentCount = index;
 
+	//int success = allocateFreeSpace(remaining);
+
 	LBAwrite (extentTable, EXTENT_TABLE_BLOCKS, 1);
 
 	// vcb->extentTableStart = 1;
 	// vcb->extentTableBlocks = EXTENT_TABLE_BLOCKS;
+
+	free(extentTable);
 
 	return 0;
 	}
