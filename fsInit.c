@@ -40,6 +40,32 @@ typedef struct ExtentTable{
 	uint32_t extentCount; //number of extents in extent table.
 } ExtentTable;
 
+int allocateFreeBlock(ExtentTable *extentTable) {
+    for (int i = 0; i < extentTable->extentCount; i++) {
+        Extent *extent = &extentTable->extents[i];
+
+        // We need to look at the free extents
+        if (extent->used == 0 && extent->count > 0) {
+            int allocatedBlock = extent->block;
+
+            // lets update out extent
+            extent->block++;
+            extent->count--;
+
+            // We need to remove the extent from the table
+			// only if its empty
+            if (extent->count == 0) {
+                for (int j = i; j < extentTable->extentCount - 1; j++) {
+                    extentTable->extents[j] = extentTable->extents[j + 1];
+                }
+                extentTable->extentCount--;
+            }
+            return allocatedBlock;
+        }
+    }
+    return -1; // if no space is left
+}
+
 
 int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	{
@@ -53,6 +79,8 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 		//free(vcb); 
 		return -1;
 	}
+
+
 
 	int index = 0;
 
@@ -72,7 +100,13 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 
 	extentTable->extentCount = index;
 
-	//int success = allocateFreeSpace(remaining);
+	int success = allocateFreeBlock(extentTable);
+	if (success == -1) {
+		printf("Failed to allocate block!\n");
+	} else {
+		printf("Allocated free block: %d\n", success);
+	}
+
 
 	LBAwrite (extentTable, EXTENT_TABLE_BLOCKS, 1);
 
