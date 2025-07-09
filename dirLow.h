@@ -12,9 +12,9 @@
 *
 **************************************************************/
 
-#include <stdint.h>
+#include <stdlib.h>
 #include <time.h>
-#include "fsInit.c"
+#include "fsInit.h"
 #include "fsLow.h"
 
 #define MAX_NAME_LENGTH 255

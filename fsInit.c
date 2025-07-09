@@ -2,7 +2,7 @@
 * Class::  CSC-415-02 Summer 2024
 * Name::  Preet Vithani, Igor Tello
 * Student IDs::	923575806, 923043807
-* GitHub-Name:: preet56
+* GitHub-Name:: 
 * Group-Name:: Team Kentucky Kernels
 * Project:: Basic File System
 *
@@ -23,38 +23,13 @@
 
 #include "fsLow.h"
 #include "mfs.h"
+#include "fsInit.h"
 
-#define MAX_EXTENTS 1024
 #define EXTENT_TABLE_BLOCKS 25
 #define ROOT_DIRECTORY_BLOCKS 10 // Edit this as needed
 #define FS_SIGNATURE "MFSv1.0\0"
 
 
-typedef struct Extent{
-	uint32_t block; //block location
-	uint32_t count; //number of blocks at this location
-	int used; // 1 if used, 0 if free
-} Extent;
-
-typedef struct ExtentTable{
-	Extent extents[MAX_EXTENTS]; 
-	uint32_t extentCount; //number of extents in extent table.
-} ExtentTable;
-
-typedef struct VolumeControlBlock{
-	char signature[8];
-	uint32_t blockSize;
-	uint32_t totalBlocks;
-	uint32_t extentTableStart;
-	uint32_t extentTableBlocks;
-	uint32_t rootDirStart;
-	uint32_t rootDirBlocks;
-	uint32_t freeBlockStart;
-
-	time_t createTime;
-	time_t lastMountTime;
-
-}VCB;
 
 Extent *allocateFreeBlocks(ExtentTable *extentTable, 
 		uint32_t minExtentLength, uint32_t *extentsAllocated) {
@@ -102,37 +77,11 @@ Extent *allocateFreeBlocks(ExtentTable *extentTable,
     return allocatedExtents;
 }
 
-
-
-int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
-	{
-	printf ("Initializing File System with %ld blocks with a block size of %ld\n", numberOfBlocks, blockSize);
-	
-	// VCB SETUP
-
-	VCB* vcb = (VCB *)calloc(1,blockSize);
-	if(!vcb){
-		perror("VCB Allocation failed");
-		return -1;
-	}
-
-	strncpy(vcb->signature,FS_SIGNATURE,8);
-	vcb->blockSize = blockSize;
-	vcb->totalBlocks = numberOfBlocks;
-	vcb->extentTableStart = 1;
-	vcb->extentTableBlocks = EXTENT_TABLE_BLOCKS;
-	vcb->rootDirStart = 1 + EXTENT_TABLE_BLOCKS;
-	vcb->rootDirBlocks = ROOT_DIRECTORY_BLOCKS;
-	vcb->freeBlockStart = 1 + EXTENT_TABLE_BLOCKS + ROOT_DIRECTORY_BLOCKS;
-	vcb->createTime = time(NULL);
-	vcb->lastMountTime = time(NULL);
-
-	LBAwrite(vcb,1,0);
+int initFreeSpace(uint64_t numberOfBlocks, uint64_t blockSize){
 
 	ExtentTable *extentTable = (ExtentTable *)calloc(1, EXTENT_TABLE_BLOCKS * blockSize);
 	if(extentTable == NULL){
 		perror("Failed to allocate memory for extent table");
-		//free(vcb); 
 		return -1;
 	}
 
@@ -169,12 +118,43 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 		free(allocated);  // freeup
 	}
 
-	LBAwrite (extentTable, EXTENT_TABLE_BLOCKS, 1);
-
-	// vcb->extentTableStart = 1;
-	// vcb->extentTableBlocks = EXTENT_TABLE_BLOCKS;
+	LBAwrite(extentTable, EXTENT_TABLE_BLOCKS, 1);
 
 	free(extentTable);
+
+	return 0;
+}
+
+int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
+	{
+	printf ("Initializing File System with %ld blocks with a block size of %ld\n", numberOfBlocks, blockSize);
+
+	VCB* vcb = (VCB *)calloc(1,blockSize);
+	if(!vcb){
+		perror("VCB Allocation failed");
+		return -1;
+	}
+
+	strncpy(vcb->signature,FS_SIGNATURE,8);
+	vcb->blockSize = blockSize;
+	vcb->totalBlocks = numberOfBlocks;
+	vcb->extentTableStart = 1;
+	vcb->extentTableBlocks = EXTENT_TABLE_BLOCKS;
+	vcb->rootDirStart = 1 + EXTENT_TABLE_BLOCKS;
+	vcb->rootDirBlocks = ROOT_DIRECTORY_BLOCKS;
+	vcb->freeBlockStart = 1 + EXTENT_TABLE_BLOCKS + ROOT_DIRECTORY_BLOCKS;
+	vcb->createTime = time(NULL);
+	vcb->lastMountTime = time(NULL);
+
+	LBAwrite(vcb,1,0);
+
+	// Initialize Free Space and extent table
+	if(initFreeSpace(numberOfBlocks, blockSize) != 0){
+		perror("Failed to init free space");
+		free(vcb);
+		return -1;
+	}
+
 	free(vcb);
 	return 0;
 	}

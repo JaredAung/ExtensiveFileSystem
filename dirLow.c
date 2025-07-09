@@ -1,8 +1,8 @@
 /**************************************************************
 * Class::  CSC-415-02 Summer 2025
-* Name::Phillip Davis
-* Student IDs::923980431
-* GitHub-Name::R3plug
+* Name:: Phillip Davis, Igor Tello, 
+* Student IDs:: 923980431, 923043807
+* GitHub-Name:: R3plug
 * Group-Name::Team Kentucky Kernels
 * Project:: Basic File System
 *
@@ -13,15 +13,7 @@
 *
 **************************************************************/
 
-#include <stdint.h>
-#include <time.h>
-#include "fsInit.c"
-#include "fsLow.h"
-
-#define MAX_NAME_LENGTH 255
-#define BLOCK_SIZE 512
-
-
+#include "dirLow.h"
 
 typedef struct{
     ExtentTable mem;
@@ -37,7 +29,7 @@ typedef struct{
 DE* createDir(int numEntries,DE* parent){
     int memNeeded = numEntries*sizeof(DE);
     int blocksNeeded = (memNeeded+BLOCK_SIZE-1)/BLOCK_SIZE;
-    int memNeeded = blocksNeeded*BLOCK_SIZE;    //Accounts for allocating memory in blocks
+    memNeeded = blocksNeeded*BLOCK_SIZE;    //Accounts for allocating memory in blocks
     
 
     DE* newDir = malloc(memNeeded);//initialize directory array
