@@ -27,6 +27,7 @@
 #define MAX_EXTENTS 1024
 #define EXTENT_TABLE_BLOCKS 25
 #define ROOT_DIRECTORY_BLOCKS 10 // Edit this as needed
+#define FS_SIGNATURE "MFSv1.0\0"
 
 
 typedef struct Extent{
@@ -39,6 +40,21 @@ typedef struct ExtentTable{
 	Extent extents[MAX_EXTENTS]; 
 	uint32_t extentCount; //number of extents in extent table.
 } ExtentTable;
+
+typedef struct VolumeControlBlock{
+	char signature[8];
+	uint32_t blockSize;
+	uint32_t totalBlocks;
+	uint32_t extentTableStart;
+	uint32_t extentTableBlocks;
+	uint32_t rootDirStart;
+	uint32_t rootDirBlocks;
+	uint32_t freeBlockStart;
+
+	time_t createTime;
+	time_t lastMountTime;
+
+}VCB;
 
 int allocateFreeBlock(ExtentTable *extentTable) {
     for (int i = 0; i < extentTable->extentCount; i++) {
@@ -71,7 +87,26 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	{
 	printf ("Initializing File System with %ld blocks with a block size of %ld\n", numberOfBlocks, blockSize);
 	
-	// VCB code here
+	// VCB SETUP
+
+	VCB* vcb = (VCB *)calloc(1,blockSize);
+	if(!vcb){
+		perror("VCB Allocation failed");
+		return -1;
+	}
+
+	strncpy(vcb->signature,FS_SIGNATURE,8);
+	vcb->blockSize = blockSize;
+	vcb->totalBlocks = numberOfBlocks;
+	vcb->extentTableStart = 1;
+	vcb->extentTableBlocks = EXTENT_TABLE_BLOCKS;
+	vcb->rootDirStart = 1 + EXTENT_TABLE_BLOCKS;
+	vcb->rootDirBlocks = ROOT_DIRECTORY_BLOCKS;
+	vcb->freeBlockStart = 1 + EXTENT_TABLE_BLOCKS + ROOT_DIRECTORY_BLOCKS;
+	vcb->createTime = time(NULL);
+	vcb->lastMountTime = time(NULL);
+
+	LBAwrite(vcb,1,0);
 
 	ExtentTable *extentTable = (ExtentTable *)calloc(1, EXTENT_TABLE_BLOCKS * blockSize);
 	if(extentTable == NULL){
@@ -111,7 +146,7 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	// vcb->extentTableBlocks = EXTENT_TABLE_BLOCKS;
 
 	free(extentTable);
-
+	free(vcb);
 	return 0;
 	}
 	
