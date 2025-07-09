@@ -1,8 +1,8 @@
 /**************************************************************
 * Class::  CSC-415-02 Summer 2024
-* Name::  , Igor Tello
-* Student IDs::	, 923043807
-* GitHub-Name::
+* Name::  Preet Vithani, Igor Tello
+* Student IDs::	923575806, 923043807
+* GitHub-Name:: preet56
 * Group-Name:: Team Kentucky Kernels
 * Project:: Basic File System
 *
@@ -56,31 +56,52 @@ typedef struct VolumeControlBlock{
 
 }VCB;
 
-int allocateFreeBlock(ExtentTable *extentTable) {
+Extent *allocateFreeBlocks(ExtentTable *extentTable, 
+		uint32_t minExtentLength, uint32_t *extentsAllocated) {
+
+	// lets now allocate spcae to store the extends we will be returning
+    Extent *allocatedExtents = calloc(MAX_EXTENTS, sizeof(Extent));
+    if (!allocatedExtents) {
+        perror("Failed to allocate memory for result extents");
+        return NULL;
+    }
+
+    uint32_t resultIndex = 0;
+
     for (int i = 0; i < extentTable->extentCount; i++) {
         Extent *extent = &extentTable->extents[i];
 
-        // We need to look at the free extents
-        if (extent->used == 0 && extent->count > 0) {
-            int allocatedBlock = extent->block;
+		// we need to look for free extends that meet the size
+        if (extent->used == 0 && extent->count >= minExtentLength) {
+            // we add to the result array
+            allocatedExtents[resultIndex++] = (Extent){
+                .block = extent->block,
+                .count = extent->count,
+                .used = 1
+            };
 
-            // lets update out extent
-            extent->block++;
-            extent->count--;
-
-            // We need to remove the extent from the table
-			// only if its empty
-            if (extent->count == 0) {
-                for (int j = i; j < extentTable->extentCount - 1; j++) {
-                    extentTable->extents[j] = extentTable->extents[j + 1];
-                }
-                extentTable->extentCount--;
+            // lets remove the extent from the table
+            for (int j = i; j < extentTable->extentCount - 1; j++) {
+                extentTable->extents[j] = extentTable->extents[j + 1];
             }
-            return allocatedBlock;
+            extentTable->extentCount--;
+            i--;  // lets check the current index after shifting
         }
     }
-    return -1; // if no space is left
+
+    if (resultIndex == 0) {
+		//if no extends is allocated 
+		// lets free the extend and return NULL
+        free(allocatedExtents);
+        *extentsAllocated = 0;
+        return NULL;
+    }
+
+    // lets return the allocated extents and count
+    *extentsAllocated = resultIndex;
+    return allocatedExtents;
 }
+
 
 
 int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
@@ -133,11 +154,19 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 
 	extentTable->extentCount = index;
 
-	int success = allocateFreeBlock(extentTable);
-	if (success == -1) {
-		printf("Failed to allocate block!\n");
+	uint32_t allocatedCount = 0;
+	Extent *allocated = allocateFreeBlocks(extentTable, 1, &allocatedCount);
+
+	if (allocated == NULL) {
+		printf("No free extents available.\n");
 	} else {
-		printf("Allocated free block: %d\n", success);
+		for (uint32_t i = 0; i < allocatedCount; i++) {
+			printf("Allocated: Block %u, Count %u\n", allocated[i].block, allocated[i].count);
+
+			// we need to add the used extents in extent table
+			extentTable->extents[extentTable->extentCount++] = allocated[i];
+		}
+		free(allocated);  // freeup
 	}
 
 	LBAwrite (extentTable, EXTENT_TABLE_BLOCKS, 1);
