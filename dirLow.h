@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <time.h>
 #include "fsInit.c"
+#include "fsLow.h"
 
 #define MAX_NAME_LENGTH 255
 #define BLOCK_SIZE 512
@@ -33,7 +34,7 @@ DE* createDir(int numEntries,DE* parent){
         newDir[i].name[0] ='\0';
     }
 
-    Extent* dirMem = allocate(blocksNeeded,blocksNeeded);//get memory for directory
+    Extent* dirMem = allocateFreeBlocks(blocksNeeded,blocksNeeded);//get memory for directory
 
     if(dirMem ==NULL){
         return -1;
@@ -85,6 +86,14 @@ DE* createDir(int numEntries,DE* parent){
 }
 
 int writeDir(DE* newDir){
+    int numExtents = newDir[0].mem.extentCount; //Number of extents that will need to be written
+    
+    
+    //if not a new directory write full extent table of data to disk.
+    for(int i = 0; i<numExtents; i++){
+        //all LBAWrite data stored in the '.' entry of the directory
+        LBAwrite(newDir,newDir[0].mem.extents[i].count, newDir[0].mem.extents[i].block);
+    }
     
 
 }
