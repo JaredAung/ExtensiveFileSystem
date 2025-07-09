@@ -1,9 +1,9 @@
 /**************************************************************
 * Class::  CSC-415-02 Summer 2024
-* Name::
-* Student IDs::
+* Name::  , Igor Tello
+* Student IDs::	, 923043807
 * GitHub-Name::
-* Group-Name::
+* Group-Name:: Team Kentucky Kernels
 * Project:: Basic File System
 *
 * File:: fsInit.c
@@ -80,8 +80,6 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 		return -1;
 	}
 
-
-
 	int index = 0;
 
 	// Block 0 for VCB
@@ -106,7 +104,6 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 	} else {
 		printf("Allocated free block: %d\n", success);
 	}
-
 
 	LBAwrite (extentTable, EXTENT_TABLE_BLOCKS, 1);
 
