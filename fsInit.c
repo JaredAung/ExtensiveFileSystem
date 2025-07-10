@@ -24,6 +24,7 @@
 #include "fsLow.h"
 #include "mfs.h"
 #include "fsInit.h"
+#include "dirLow.h"
 
 #define EXTENT_TABLE_BLOCKS 25
 #define ROOT_DIRECTORY_BLOCKS 10 // Edit this as needed
@@ -139,14 +140,21 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize)
 		return -1;
 	}
 
+	if(initFreeSpace(numberOfBlocks,BLOCK_SIZE)!=0){
+		printf("Error allocating free space\n");
+		return -1;
+	}
+
+	DE* root = createDir(50,NULL);
+
 	strncpy(vcb->signature,FS_SIGNATURE,8);
 	vcb->blockSize = blockSize;
 	vcb->totalBlocks = numberOfBlocks;
 	vcb->extentTableStart = 1;
 	vcb->extentTableBlocks = EXTENT_TABLE_BLOCKS;
-	vcb->rootDirStart = 1 + EXTENT_TABLE_BLOCKS;
-	vcb->rootDirBlocks = ROOT_DIRECTORY_BLOCKS;
-	vcb->freeBlockStart = 1 + EXTENT_TABLE_BLOCKS + ROOT_DIRECTORY_BLOCKS;
+	vcb->rootDirStart = root->mem.extents[0].block;
+	vcb->rootDirBlocks = root->mem.extents[0].count;
+	vcb->freeBlockStart = 1;
 	vcb->createTime = time(NULL);
 	vcb->lastMountTime = time(NULL);
 
