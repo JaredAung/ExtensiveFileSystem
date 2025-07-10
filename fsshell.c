@@ -1,9 +1,9 @@
 /**************************************************************
-* Class::  CSC-415-0# Spring 2024
-* Name::
-* Student IDs::
+* Class::  CSC-415-02 Summer 2025
+* Name::	Igor Tello
+* Student IDs::	923043807
 * GitHub-Name::
-* Group-Name::
+* Group-Name::	Team Kentucky Kernels
 * Project:: Basic File System
 *
 * File:: fsShell.c
