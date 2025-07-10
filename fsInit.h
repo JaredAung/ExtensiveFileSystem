@@ -1,7 +1,10 @@
+#ifndef FSINIT
+#define FSINIT
+
 #include <stdlib.h>
 
-#define MAX_EXTENTS 1024
-#define BLOCK_SIZE 512
+extern MAX_EXTENTS;
+extern BLOCK_SIZE;
 
 typedef struct Extent{
 	uint32_t block; //block location
@@ -30,3 +33,9 @@ typedef struct VolumeControlBlock{
 }VCB;
 
 Extent *allocateFreeBlocks(uint32_t minExtentLength, uint32_t *extentsAllocated);
+
+int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize);
+
+void exitFileSystem ();
+
+#endif

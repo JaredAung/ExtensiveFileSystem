@@ -1,8 +1,8 @@
 /**************************************************************
 * Class::  CSC-415-02 Summer 2025
-* Name:: Phillip Davis, Igor Tello, 
-* Student IDs:: 923980431, 923043807
-* GitHub-Name:: R3plug
+* Name::Phillip Davis
+* Student IDs::923980431
+* GitHub-Name::R3plug
 * Group-Name::Team Kentucky Kernels
 * Project:: Basic File System
 *
@@ -13,23 +13,20 @@
 *
 **************************************************************/
 
+#include <stdint.h>
+#include <time.h>
+#include "fsInit.c"
+#include "fsLow.h"
 #include "dirLow.h"
 
-typedef struct{
-    ExtentTable mem;
-    time_t creationTime;
-    time_t modificationTime;
-    time_t lastAccessTime;
-    uint32_t size;
-    char name[MAX_NAME_LENGTH];
-    char isDir;
+#define MAX_NAME_LENGTH 255
+#define BLOCK_SIZE 512
 
-}DE;
 
 DE* createDir(int numEntries,DE* parent){
     int memNeeded = numEntries*sizeof(DE);
     int blocksNeeded = (memNeeded+BLOCK_SIZE-1)/BLOCK_SIZE;
-    memNeeded = blocksNeeded*BLOCK_SIZE;    //Accounts for allocating memory in blocks
+    int memNeeded = blocksNeeded*BLOCK_SIZE;    //Accounts for allocating memory in blocks
     
 
     DE* newDir = malloc(memNeeded);//initialize directory array
@@ -41,10 +38,9 @@ DE* createDir(int numEntries,DE* parent){
         newDir[i].name[0] ='\0';
     }
 
-    uint32_t allocatedCount = 0;
-    Extent* dirMem = allocateFreeBlocks(blocksNeeded,&allocatedCount);//get memory for directory
+    Extent* dirMem = allocateFreeBlocks(blocksNeeded,blocksNeeded);//get memory for directory
 
-    if(dirMem ==NULL || allocatedCount == 0){
+    if(dirMem ==NULL){
         return -1;
     }
 
@@ -52,12 +48,10 @@ DE* createDir(int numEntries,DE* parent){
 
     strcpy(newDir[0].name,".");
 
-    newDir[0].size =actualEntries* sizeof(DE); 
-    //support for multiple extents
-    for(int i = 0; i < allocatedCount; i++) {
-        newDir[0].mem.extents[i] = dirMem[i]; //assign directory memory to extent table to '.' entry
-    }
-    newDir[0].mem.extentCount=allocatedCount;
+    newDir[0].size =actualEntries* sizeof(DE); //
+
+    newDir[0].mem.extents[0] =*dirMem; //assign directory memory to extent table to '.' entry
+    newDir[0].mem.extentCount=1;
 
     newDir[0].isDir = '1';  //Sentinel value of 1 is True
 

@@ -11,14 +11,16 @@
 * Description:: Header file for low level directory functions
 *
 **************************************************************/
+#ifndef DIRLOW
+#define DIRLOW
 
 #include <stdlib.h>
 #include <time.h>
 #include "fsInit.h"
 #include "fsLow.h"
 
-#define MAX_NAME_LENGTH 255
-#define BLOCK_SIZE 512
+extern MAX_NAME_LENGTH;
+extern BLOCK_SIZE; 
 
 typedef struct{
     ExtentTable mem;
@@ -31,6 +33,9 @@ typedef struct{
 
 }DE;
 
+
 DE* createDir(int numEntries,DE* parent);
 
 int writeDir(DE* newDir);
+
+#endif
