@@ -174,6 +174,9 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 		return -1;
 	};
 
+	printf("blockSize: %d total blocks: %d Extent table start: %d extent table blocks: %d \n", vcb->blockSize,vcb->totalBlocks,vcb->extentTableStart,vcb->extentTableBlocks);
+	printf("rootDir start: %d root dir blocks %d free block start %d create %d mount %d\n", vcb->rootDirStart, vcb->rootDirBlocks, vcb->freeBlockStart, vcb->createTime, vcb->lastMountTime);
+
 	free(vcb);
 	return 0;
 }
