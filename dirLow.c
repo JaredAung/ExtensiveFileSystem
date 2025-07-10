@@ -15,7 +15,6 @@
 
 #include <stdint.h>
 #include <time.h>
-#include "fsInit.c"
 #include "fsLow.h"
 #include "dirLow.h"
 

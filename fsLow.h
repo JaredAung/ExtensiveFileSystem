@@ -43,6 +43,7 @@
 //		return value -2 = insufficient space for the volume		
 //		volSize will be filled with the volume size
 //		blockSize will be filled with the block size
+#include <sys/types.h>
 #ifndef uint64_t
 typedef u_int64_t uint64_t;
 #endif
