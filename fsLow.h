@@ -58,8 +58,8 @@ int startPartitionSystem (char * filename, uint64_t * volSize, uint64_t * blockS
 
 int closePartitionSystem ();
 
-int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize);
-void exitFileSystem ();
+//int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize);
+//void exitFileSystem ();
 
 uint64_t LBAwrite (void * buffer, uint64_t lbaCount, uint64_t lbaPosition);
 

@@ -17,6 +17,7 @@
 #include <time.h>
 #include "fsLow.h"
 #include "dirLow.h"
+#include <stdio.h>
 
 #define MAX_NAME_LENGTH 255
 #define BLOCK_SIZE 512
@@ -41,6 +42,7 @@ DE* createDir(int numEntries,DE* parent){
     Extent* dirMem = allocateFreeBlocks(blocksNeeded,&blocksAllocated);//get memory for directory
 
     if(dirMem ==NULL){
+        printf("No memory allocated for root dir\n");
         return NULL;
     }
 
@@ -91,7 +93,8 @@ DE* createDir(int numEntries,DE* parent){
 
 int writeDir(DE* newDir){
     int numExtents = newDir[0].mem.extentCount; //Number of extents that will need to be written
-    
+    printf("Extents count for root dir %d", numExtents);
+    printf("Start lcoation root dir %d", newDir[0].mem.extents[0].block);
     
     //if not a new directory write full extent table of data to disk.
     for(int i = 0; i<numExtents; i++){

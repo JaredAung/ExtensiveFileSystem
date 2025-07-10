@@ -25,7 +25,7 @@
 #include "fsInit.h"
 #include "dirLow.h"
 
-#define EXTENT_TABLE_BLOCKS 25
+#define EXTENT_TABLE_BLOCKS 2
 #define ROOT_DIRECTORY_BLOCKS 10 // Edit this as needed
 #define FS_SIGNATURE "MFSv1.0\0"
 #define BLOCK_SIZE 512
@@ -139,6 +139,7 @@ int initFreeSpace(uint64_t numberOfBlocks, uint64_t blockSize)
 
 int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 {
+	printf("Kentucky Kernels\n");
 	printf("Initializing File System with %ld blocks with a block size of %ld\n", numberOfBlocks, blockSize);
 
 	VCB *vcb = (VCB *)calloc(1, blockSize);
@@ -168,7 +169,10 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	vcb->createTime = time(NULL);
 	vcb->lastMountTime = time(NULL);
 
-	LBAwrite(vcb, 1, 0);
+	if(1!=LBAwrite(vcb, 1, 0)){
+		printf("VCB write fail\n");
+		return -1;
+	};
 
 	free(vcb);
 	return 0;
