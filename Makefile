@@ -43,7 +43,7 @@ CFLAGS= -g -I.
 LIBS =pthread
 DEPS = 
 # Add any additional objects to this list
-ADDOBJ= fsInit.o dirLow.o 
+ADDOBJ= fsInit.o dirLow.o
 ARCH = $(shell uname -m)
 
 ifeq ($(ARCH), aarch64)
@@ -59,6 +59,7 @@ OBJ = $(ROOTNAME)$(HW)$(FOPTION).o $(ADDOBJ) $(ARCHOBJ)
 
 $(ROOTNAME)$(HW)$(FOPTION): $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS) -lm -l readline -l $(LIBS)
+	$(CC) -o hexdump Hexdump/hexdump.c -g -I.
 
 clean:
 	rm $(ROOTNAME)$(HW)$(FOPTION).o $(ADDOBJ) $(ROOTNAME)$(HW)$(FOPTION)

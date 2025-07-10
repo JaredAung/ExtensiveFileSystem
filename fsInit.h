@@ -1,3 +1,16 @@
+/**************************************************************
+* Class::  CSC-415-02 Summer 2025
+* Name:: Phillip Davis, Igor Tello
+* Student IDs::	923980431, 923043807
+* GitHub-Name::	R3plug
+* Group-Name::	Team Kentucky Kernels
+* Project:: Basic File System
+*
+* File:: dirLow.h
+*
+* Description:: Header file for low level directory functions
+*
+**************************************************************/
 #ifndef FSINIT
 #define FSINIT
 
