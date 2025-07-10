@@ -41,9 +41,10 @@ DE* createDir(int numEntries,DE* parent){
         newDir[i].name[0] ='\0';
     }
 
-    Extent* dirMem = allocateFreeBlocks(blocksNeeded,blocksNeeded);//get memory for directory
+    uint32_t allocatedCount = 0;
+    Extent* dirMem = allocateFreeBlocks(blocksNeeded,&allocatedCount);//get memory for directory
 
-    if(dirMem ==NULL){
+    if(dirMem ==NULL || allocatedCount == 0){
         return -1;
     }
 
@@ -51,10 +52,12 @@ DE* createDir(int numEntries,DE* parent){
 
     strcpy(newDir[0].name,".");
 
-    newDir[0].size =actualEntries* sizeof(DE); //
-
-    newDir[0].mem.extents[0] =*dirMem; //assign directory memory to extent table to '.' entry
-    newDir[0].mem.extentCount=1;
+    newDir[0].size =actualEntries* sizeof(DE); 
+    //support for multiple extents
+    for(int i = 0; i < allocatedCount; i++) {
+        newDir[0].mem.extents[i] = dirMem[i]; //assign directory memory to extent table to '.' entry
+    }
+    newDir[0].mem.extentCount=allocatedCount;
 
     newDir[0].isDir = '1';  //Sentinel value of 1 is True
 

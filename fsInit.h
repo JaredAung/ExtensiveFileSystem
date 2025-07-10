@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 #define MAX_EXTENTS 1024
+#define BLOCK_SIZE 512
 
 typedef struct Extent{
 	uint32_t block; //block location
@@ -28,5 +29,4 @@ typedef struct VolumeControlBlock{
 
 }VCB;
 
-Extent *allocateFreeBlocks(ExtentTable *extentTable, 
-		uint32_t minExtentLength, uint32_t *extentsAllocated);
+Extent *allocateFreeBlocks(uint32_t minExtentLength, uint32_t *extentsAllocated);
