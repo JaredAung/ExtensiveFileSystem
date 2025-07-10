@@ -27,7 +27,7 @@ DE* createDir(int numEntries,DE* parent){
     int memNeeded = numEntries*sizeof(DE);
     int blocksNeeded = (memNeeded+BLOCK_SIZE-1)/BLOCK_SIZE;
     memNeeded = blocksNeeded*BLOCK_SIZE;    //Accounts for allocating memory in blocks
-    
+    printf("blocksNeeded %d\n", blocksNeeded);
 
     DE* newDir = malloc(memNeeded);//initialize directory array
 
@@ -41,6 +41,8 @@ DE* createDir(int numEntries,DE* parent){
 
     Extent* dirMem = allocateFreeBlocks(blocksNeeded,&blocksAllocated);//get memory for directory
 
+    printf("\nExtent count: %d\n", dirMem->count);
+    
     if(dirMem ==NULL){
         printf("No memory allocated for root dir\n");
         return NULL;

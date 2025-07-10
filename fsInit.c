@@ -65,6 +65,7 @@ Extent *allocateFreeBlocks(uint32_t minExtentLength, uint32_t *extentsAllocated)
 		// we need to look for free extends that meet the size
 		if (extent->used == 0 && extent->count >= minExtentLength)
 		{
+			/*
 			// we add to the result array
 			allocatedExtents[resultIndex++] = (Extent){
 				.block = extent->block,
@@ -78,6 +79,17 @@ Extent *allocateFreeBlocks(uint32_t minExtentLength, uint32_t *extentsAllocated)
 			}
 			table->extentCount--;
 			i--; // lets check the current index after shifting
+			*/
+		// we add to the result array
+			allocatedExtents[resultIndex++] = (Extent){
+				.block = extent->block,
+				.count = minExtentLength,
+				.used = 1};
+
+			// lets remove the extent from the table
+			
+			table->extents[i].block += minExtentLength;
+			break;
 		}
 	}
 
@@ -92,7 +104,7 @@ Extent *allocateFreeBlocks(uint32_t minExtentLength, uint32_t *extentsAllocated)
 	}
 
 	LBAwrite(table, EXTENT_TABLE_BLOCKS, 1);
-
+	printf("Allocated Extents %d\n", allocatedExtents->count);
 	// lets return the allocated extents and count
 	*extentsAllocated = resultIndex;
 	free(table);
@@ -175,7 +187,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	};
 
 	printf("blockSize: %d total blocks: %d Extent table start: %d extent table blocks: %d \n", vcb->blockSize,vcb->totalBlocks,vcb->extentTableStart,vcb->extentTableBlocks);
-	printf("rootDir start: %d root dir blocks %d free block start %d create %d mount %d\n", vcb->rootDirStart, vcb->rootDirBlocks, vcb->freeBlockStart, vcb->createTime, vcb->lastMountTime);
+	printf("rootDir start: %d root dir blocks %d free block start %d create %ld mount %ld\n", vcb->rootDirStart, vcb->rootDirBlocks, vcb->freeBlockStart, vcb->createTime, vcb->lastMountTime);
 
 	free(vcb);
 	return 0;
