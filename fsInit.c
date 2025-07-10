@@ -28,7 +28,7 @@
 #define EXTENT_TABLE_BLOCKS 25
 #define ROOT_DIRECTORY_BLOCKS 10 // Edit this as needed
 #define FS_SIGNATURE "MFSv1.0\0"
-
+#define BLOCK_SIZE 512
 
 
 Extent *allocateFreeBlocks(uint32_t minExtentLength, uint32_t *extentsAllocated) {
@@ -47,7 +47,7 @@ Extent *allocateFreeBlocks(uint32_t minExtentLength, uint32_t *extentsAllocated)
 	}
 
 	// lets now allocate spcae to store the extends we will be returning
-    Extent *allocatedExtents = calloc(MAX_EXTENTS, sizeof(Extent));
+    Extent *allocatedExtents = calloc(EXTENT_TABLE_BLOCKS, sizeof(Extent));
     if (!allocatedExtents) {
         perror("Failed to allocate memory for result extents");
         return NULL;

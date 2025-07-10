@@ -3,8 +3,8 @@
 
 #include <stdlib.h>
 
-extern MAX_EXTENTS;
-extern BLOCK_SIZE;
+#define EXTENT_TABLE_BLOCKS 25
+
 
 typedef struct Extent{
 	uint32_t block; //block location
@@ -13,7 +13,7 @@ typedef struct Extent{
 } Extent;
 
 typedef struct ExtentTable{
-	Extent extents[MAX_EXTENTS]; 
+	Extent extents[EXTENT_TABLE_BLOCKS]; 
 	uint32_t extentCount; //number of extents in extent table.
 } ExtentTable;
 

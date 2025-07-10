@@ -26,7 +26,7 @@
 DE* createDir(int numEntries,DE* parent){
     int memNeeded = numEntries*sizeof(DE);
     int blocksNeeded = (memNeeded+BLOCK_SIZE-1)/BLOCK_SIZE;
-    int memNeeded = blocksNeeded*BLOCK_SIZE;    //Accounts for allocating memory in blocks
+    memNeeded = blocksNeeded*BLOCK_SIZE;    //Accounts for allocating memory in blocks
     
 
     DE* newDir = malloc(memNeeded);//initialize directory array
@@ -37,11 +37,12 @@ DE* createDir(int numEntries,DE* parent){
     for(int i =2; i<actualEntries; i++){//Mark unused entries
         newDir[i].name[0] ='\0';
     }
+    uint32_t blocksAllocated =0;
 
-    Extent* dirMem = allocateFreeBlocks(blocksNeeded,blocksNeeded);//get memory for directory
+    Extent* dirMem = allocateFreeBlocks(blocksNeeded,&blocksAllocated);//get memory for directory
 
     if(dirMem ==NULL){
-        return -1;
+        return NULL;
     }
 
     time_t initTime = time(NULL);

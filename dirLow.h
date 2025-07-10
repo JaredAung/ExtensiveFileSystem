@@ -19,8 +19,8 @@
 #include "fsInit.h"
 #include "fsLow.h"
 
-extern MAX_NAME_LENGTH;
-extern BLOCK_SIZE; 
+#define MAX_NAME_LENGTH 255
+
 
 typedef struct{
     ExtentTable mem;
