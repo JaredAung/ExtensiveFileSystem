@@ -24,19 +24,21 @@
 
 
 typedef struct{
-    ExtentTable mem;
+    ExtentTable mem;//Extent table to hold Directory entry data
     time_t creationTime;
-    time_t modificationTime;
+    time_t modificationTime;    // Directory metadata
     time_t lastAccessTime;
-    uint32_t size;
-    char name[MAX_NAME_LENGTH];
-    char isDir;
+    uint32_t size;// size in bytes of directory
+    char name[MAX_NAME_LENGTH];//directory name
+    char isDir;//signal value for if directory entry is a directory
 
 }DE;
 
-
+//creates a directory with a given number of entries at 
+//the provided path
 DE* createDir(int numEntries,DE* parent);
 
-int writeDir(DE* newDir);
+
+int writeDir(DE* newDir);//writes a directory to disk
 
 #endif

@@ -27,7 +27,7 @@ DE* createDir(int numEntries,DE* parent){
     int memNeeded = numEntries*sizeof(DE);
     int blocksNeeded = (memNeeded+BLOCK_SIZE-1)/BLOCK_SIZE;
     memNeeded = blocksNeeded*BLOCK_SIZE;    //Accounts for allocating memory in blocks
-    printf("blocksNeeded %d\n", blocksNeeded);
+    //printf("blocksNeeded %d\n", blocksNeeded);
 
     DE* newDir = malloc(memNeeded);//initialize directory array
 
@@ -41,7 +41,7 @@ DE* createDir(int numEntries,DE* parent){
 
     Extent* dirMem = allocateFreeBlocks(blocksNeeded,&blocksAllocated);//get memory for directory
 
-    printf("\nExtent count: %d\n", dirMem->count);
+    //printf("\nExtent count: %d\n", dirMem->count);
 
     if(dirMem ==NULL){
         printf("No memory allocated for root dir\n");
@@ -95,8 +95,8 @@ DE* createDir(int numEntries,DE* parent){
 
 int writeDir(DE* newDir){
     int numExtents = newDir[0].mem.extentCount; //Number of extents that will need to be written
-    printf("Extents count for root dir %d", numExtents);
-    printf("Start lcoation root dir %d", newDir[0].mem.extents[0].block);
+    //printf("Extents count for root dir %d", numExtents);
+    //printf("Start lcoation root dir %d", newDir[0].mem.extents[0].block);
     
     //if not a new directory write full extent table of data to disk.
     for(int i = 0; i<numExtents; i++){

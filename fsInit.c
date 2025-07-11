@@ -25,10 +25,10 @@
 #include "fsInit.h"
 #include "dirLow.h"
 
-#define EXTENT_TABLE_BLOCKS 2
+#define EXTENT_TABLE_BLOCKS 2 //default extenet table size
 #define ROOT_DIRECTORY_BLOCKS 10 // Edit this as needed
 #define FS_SIGNATURE "MFSv1.0\0"
-#define BLOCK_SIZE 512
+#define BLOCK_SIZE 512	//default block size
 
 Extent *allocateFreeBlocks(uint32_t minExtentLength, uint32_t *extentsAllocated)
 {
@@ -87,7 +87,7 @@ Extent *allocateFreeBlocks(uint32_t minExtentLength, uint32_t *extentsAllocated)
 				.used = 1};
 
 			// lets remove the extent from the table
-			
+			//set the startof the extent to the end of allcoated section
 			table->extents[i].block += minExtentLength;
 			break;
 		}

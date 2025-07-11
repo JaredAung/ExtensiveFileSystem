@@ -31,16 +31,16 @@ typedef struct ExtentTable{
 } ExtentTable;
 
 typedef struct VolumeControlBlock{
-	char signature[8];
-	uint32_t blockSize;
-	uint32_t totalBlocks;
-	uint32_t extentTableStart;
-	uint32_t extentTableBlocks;
-	uint32_t rootDirStart;
-	uint32_t rootDirBlocks;
+	char signature[8]; //Magic number file system identifier
+	uint32_t blockSize;//size of blocks
+	uint32_t totalBlocks;//total number of blocks in volume
+	uint32_t extentTableStart;	//free space extenet start
+	uint32_t extentTableBlocks; //size of free space extent
+	uint32_t rootDirStart;//start block of root directory
+	uint32_t rootDirBlocks; //number of blocks for root directory
 	uint32_t freeBlockStart;
 
-	time_t createTime;
+	time_t createTime;	//volume metadata
 	time_t lastMountTime;
 
 }VCB;
