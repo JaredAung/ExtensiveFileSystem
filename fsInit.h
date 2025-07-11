@@ -1,8 +1,8 @@
 /**************************************************************
 * Class::  CSC-415-02 Summer 2025
-* Name:: Phillip Davis, Igor Tello Jared Aung Preet Vithani
-* Student IDs::	923980431, 923043807
-* GitHub-Name::	R3plug
+* Name:: Phillip Davis, Igor Tello, Jared Aung
+* Student IDs::	923980431, 923043807, 922772159
+* GitHub-Name::	R3plug, JaredAung
 * Group-Name::	Team Kentucky Kernels
 * Project:: Basic File System
 *
@@ -31,17 +31,17 @@ typedef struct ExtentTable{
 } ExtentTable;
 
 typedef struct VolumeControlBlock{
-	char signature[8]; //Magic number file system identifier
-	uint32_t blockSize;//size of blocks
-	uint32_t totalBlocks;//total number of blocks in volume
-	uint32_t extentTableStart;	//free space extenet start
-	uint32_t extentTableBlocks; //size of free space extent
-	uint32_t rootDirStart;//start block of root directory
-	uint32_t rootDirBlocks; //number of blocks for root directory
-	uint32_t freeBlockStart;
+	char signature[8]; //unique identifier
+	uint32_t blockSize; // size of block
+	uint32_t totalBlocks; // total number of blocks in volume
+	uint32_t extentTableStart; // block number where extent table start
+	uint32_t extentTableBlocks; //number of blocks used by extent table
+	uint32_t rootDirStart; //block number where root directory start
+	uint32_t rootDirBlocks;//number of blocks used by root directory
+	uint32_t freeBlockStart;//block number where free space start
 
-	time_t createTime;	//volume metadata
-	time_t lastMountTime;
+	time_t createTime; //time when volume was created
+	time_t lastMountTime; // time when volume was last mounted
 
 }VCB;
 
