@@ -154,8 +154,9 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	//printf("Kentucky Kernels\n");
 	printf("Initializing File System with %ld blocks with a block size of %ld\n", numberOfBlocks, blockSize);
 
+	// allocate Volume Control Block
 	VCB *vcb = (VCB *)calloc(1, blockSize);
-	if (!vcb)
+	if (!vcb) // check allocation was successful
 	{
 		perror("VCB Allocation failed");
 		return -1;
@@ -168,8 +169,10 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 		return -1;
 	}
 
+	// create Root Directory containing 50 directory entires
 	DE *root = createDir(50, NULL);
 
+	//Fill VCB
 	strncpy(vcb->signature, FS_SIGNATURE, 8);
 	vcb->blockSize = blockSize;
 	vcb->totalBlocks = numberOfBlocks;
@@ -178,9 +181,10 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	vcb->rootDirStart = root->mem.extents[0].block;
 	vcb->rootDirBlocks = root->mem.extents[0].count;
 	vcb->freeBlockStart = 1;
-	vcb->createTime = time(NULL);
-	vcb->lastMountTime = time(NULL);
+	vcb->createTime = time(NULL); //current time
+	vcb->lastMountTime = time(NULL); //current time
 
+	// write VCB to block
 	if(1!=LBAwrite(vcb, 1, 0)){
 		printf("VCB write fail\n");
 		return -1;
@@ -189,7 +193,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	//printf("blockSize: %d total blocks: %d Extent table start: %d extent table blocks: %d \n", vcb->blockSize,vcb->totalBlocks,vcb->extentTableStart,vcb->extentTableBlocks);
 	//printf("rootDir start: %d root dir blocks %d free block start %d create %ld mount %ld\n", vcb->rootDirStart, vcb->rootDirBlocks, vcb->freeBlockStart, vcb->createTime, vcb->lastMountTime);
 
-	free(vcb);
+	free(vcb); // free allocated memory
 	return 0;
 }
 
