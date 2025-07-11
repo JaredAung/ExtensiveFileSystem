@@ -104,7 +104,7 @@ Extent *allocateFreeBlocks(uint32_t minExtentLength, uint32_t *extentsAllocated)
 	}
 
 	LBAwrite(table, EXTENT_TABLE_BLOCKS, 1);
-	printf("Allocated Extents %d\n", allocatedExtents->count);
+	//printf("Allocated Extents %d\n", allocatedExtents->count);
 	// lets return the allocated extents and count
 	*extentsAllocated = resultIndex;
 	free(table);
@@ -151,7 +151,7 @@ int initFreeSpace(uint64_t numberOfBlocks, uint64_t blockSize)
 
 int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 {
-	printf("Kentucky Kernels\n");
+	//printf("Kentucky Kernels\n");
 	printf("Initializing File System with %ld blocks with a block size of %ld\n", numberOfBlocks, blockSize);
 
 	VCB *vcb = (VCB *)calloc(1, blockSize);
@@ -186,8 +186,8 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 		return -1;
 	};
 
-	printf("blockSize: %d total blocks: %d Extent table start: %d extent table blocks: %d \n", vcb->blockSize,vcb->totalBlocks,vcb->extentTableStart,vcb->extentTableBlocks);
-	printf("rootDir start: %d root dir blocks %d free block start %d create %ld mount %ld\n", vcb->rootDirStart, vcb->rootDirBlocks, vcb->freeBlockStart, vcb->createTime, vcb->lastMountTime);
+	//printf("blockSize: %d total blocks: %d Extent table start: %d extent table blocks: %d \n", vcb->blockSize,vcb->totalBlocks,vcb->extentTableStart,vcb->extentTableBlocks);
+	//printf("rootDir start: %d root dir blocks %d free block start %d create %ld mount %ld\n", vcb->rootDirStart, vcb->rootDirBlocks, vcb->freeBlockStart, vcb->createTime, vcb->lastMountTime);
 
 	free(vcb);
 	return 0;
