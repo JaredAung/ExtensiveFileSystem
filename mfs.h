@@ -1,9 +1,9 @@
 /**************************************************************
-* Class::  CSC-415-0# Spring 2024
-* Name::
+* Class::  CSC-415-02 Summer 2025
+* Name::Phillip Davis Igor Tello Jared Aung Preet Vithani
 * Student IDs::
-* GitHub-Name::
-* Group-Name::
+* GitHub-Name::R3plug
+* Group-Name::Team Kentucky Kernels
 * Project:: Basic File System
 *
 * File:: mfs.h

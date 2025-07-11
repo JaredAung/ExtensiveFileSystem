@@ -1,6 +1,6 @@
 /**************************************************************
 * Class::  CSC-415-02 Summer 2025
-* Name::Phillip Davis, Igor Tello
+* Name::Phillip Davis, Igor Tello, Preet Vithani Jared Aung
 * Student IDs::923980431, 923043807
 * GitHub-Name::R3plug
 * Group-Name::Team Kentucky Kernels
@@ -42,7 +42,7 @@ DE* createDir(int numEntries,DE* parent){
     Extent* dirMem = allocateFreeBlocks(blocksNeeded,&blocksAllocated);//get memory for directory
 
     printf("\nExtent count: %d\n", dirMem->count);
-    
+
     if(dirMem ==NULL){
         printf("No memory allocated for root dir\n");
         return NULL;

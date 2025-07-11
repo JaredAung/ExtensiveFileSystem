@@ -1,9 +1,9 @@
 /**************************************************************
-* Class::  CSC-415-0# Spring 2024
-* Name::
-* Student IDs::
-* GitHub-Name::
-* Group-Name::
+* Class::  CSC-415-02 Summer 2025
+* Name::Phillip Davis Igor Tello Jared Aung Preet Vithani
+* Student IDs::923980431
+* GitHub-Name::R3plug
+* Group-Name::Team Kentucky Kernels
 * Project:: Basic File System
 *
 * File:: b_io.c

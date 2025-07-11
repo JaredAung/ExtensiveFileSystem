@@ -1,7 +1,7 @@
 /**************************************************************
  * Class::  CSC-415-02 Summer 2024
- * Name::  Preet Vithani, Igor Tello
- * Student IDs::	923575806, 923043807
+ * Name::  Preet Vithani, Igor Tello, Phillip Davis, Jared Aung
+ * Student IDs::	923575806, 923043807, 923980431,
  * GitHub-Name::
  * Group-Name:: Team Kentucky Kernels
  * Project:: Basic File System
