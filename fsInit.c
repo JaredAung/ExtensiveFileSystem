@@ -25,8 +25,7 @@
 #include "fsInit.h"
 #include "dirLow.h"
 
-#define EXTENT_TABLE_BLOCKS 2 //default extenet table size
-#define ROOT_DIRECTORY_BLOCKS 10 // Edit this as needed
+#define ROOT_DIRECTORY_BLOCKS 2 // Edit this as needed
 #define FS_SIGNATURE "MFSv1.0\0"
 #define BLOCK_SIZE 512	//default block size
 

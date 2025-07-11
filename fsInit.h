@@ -16,7 +16,7 @@
 
 #include <stdlib.h>
 
-#define EXTENT_TABLE_BLOCKS 25
+#define EXTENT_TABLE_BLOCKS 2
 
 
 typedef struct Extent{
