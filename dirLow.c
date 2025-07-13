@@ -180,9 +180,7 @@ int parsePath(char* path,ppInfo* info){
 }
 
 DE* getRootDir(){
-    VCB* tempVCB=malloc;
-
-    LBAread(tempVCB)
+    
 }
 
 
