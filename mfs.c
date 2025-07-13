@@ -46,7 +46,8 @@ int fs_mkdir(const char *pathname, mode_t mode){
     if(writeDir(ppi.parent)!=0){
         return -3;  //failed write to save dir
     };
-
+    free(newDir);
+    safeFree(ppi.parent);
     return 0;
 }
 
@@ -57,4 +58,12 @@ int fs_mkdir(const char *pathname, mode_t mode){
  */
 int findFreeDE(DE* parent){
 
+}
+
+/**
+ * Check that the dir is not the cwd or root dir
+ * then free it
+ */
+int safeFree(DE* dir){
+    
 }
