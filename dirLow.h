@@ -48,6 +48,9 @@ DE* createDir(int numEntries,DE* parent);
 int writeDir(DE* newDir);//writes a directory to disk
 
 //Takes a path and verifies it is a valid path in the fs
-int parsePath(char*path);
+int parsePath(char* path,ppInfo* info);
+
+//writes a directory to disk
+int writeDir(DE* newDir);
 
 #endif

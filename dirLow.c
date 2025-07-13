@@ -127,7 +127,7 @@ int parsePath(char* path,ppInfo* info){
         startParent = getRootDir();
     }
     else{
-        startParent = getCurrDir();
+        startParent = fs_getcwd();
     }
 
     parent = startParent;
@@ -146,39 +146,50 @@ int parsePath(char* path,ppInfo* info){
             return -1;
         }
     }
+    while(1){
+        int idx = findInDir(parent, token1);
 
-    int idx = findInDir(parent, token1);
+        token2 = strtok_r(NULL,"/",&savePtr);
 
-    token2 = strtok_r(NULL,"/",&savePtr);
+        if(token2 ==NULL){
+            info->parent = parent;
+            info->index = idx;
+            info->lastElementName = token1;
+            return 0;
+        }
 
-    if(token2 ==NULL){
-        info->parent = parent;
-        info->index = idx;
-        info->lastElementName = token1;
-        return 0;
+        if(idx ==-1){
+            return -1;
+        }
+
+        if(!isDir(&parent[idx])){
+            return -1;
+        }
+
+        DE* tempParent = loadDir(&(parent[idx]));
+
+        if(parent!= startParent){
+            free(parent);
+        }
+
+        parent = tempParent;
+
+        token1=token2;
+
     }
-
-    if(idx ==-1){
-        return -1;
-    }
-
-    if(!isDir(&parent[idx])){
-        return -1;
-    }
-
-    DE* tempParent = loadDirectory(&)
-
-
-    return;
 }
 
-DE* getRootDir();
+DE* getRootDir(){
+    VCB* tempVCB=malloc;
 
-DE* getCurrDir();
+    LBAread(tempVCB)
+}
 
-int idDir();
 
-DE* loadDir(DE* parentDir);
+
+int isDir();
+
+DE* loadDir(DE* dir);
 
 
 /**
