@@ -106,3 +106,96 @@ int writeDir(DE* newDir){
     
 
 }
+/**
+ * Takes a file path and an info structure
+ * returns 0 on success, -1 on doesnt exist 
+ */
+int parsePath(char* path,ppInfo* info){
+
+    if(path == NULL){//empty path invalid
+        return -1;
+    }
+
+    DE* parent;
+    DE* startParent;
+    char* savePtr;
+    char* token1;
+    char* token2;
+    
+    //Sets starting point of path search
+    if(path[0]=='/'){
+        startParent = getRootDir();
+    }
+    else{
+        startParent = getCurrDir();
+    }
+
+    parent = startParent;
+
+    token1 = strtok_r(path, "/", savePtr);
+
+    if(token1==NULL){
+        if(path[0]=='/'){//passed the root directory
+            info->parent = parent;
+            info->index = -2;
+            info->lastElementName = NULL;
+
+            return 0;
+        }
+        else{
+            return -1;
+        }
+    }
+
+    int idx = findInDir(parent, token1);
+
+    token2 = strtok_r(NULL,"/",&savePtr);
+
+    if(token2 ==NULL){
+        info->parent = parent;
+        info->index = idx;
+        info->lastElementName = token1;
+        return 0;
+    }
+
+    if(idx ==-1){
+        return -1;
+    }
+
+    if(!isDir(&parent[idx])){
+        return -1;
+    }
+
+    DE* tempParent = loadDirectory(&)
+
+
+    return;
+}
+
+DE* getRootDir();
+
+DE* getCurrDir();
+
+int idDir();
+
+DE* loadDir(DE* parentDir);
+
+
+/**
+ * Return the index of the token if the token 
+ * is in the Directory
+ * Returns -1 if the token is not in the directory
+ */
+int findInDir(DE* parent,char* token1){
+    int numEntries = parent[0].size/sizeof(DE);
+
+    for(int i = 0;i<numEntries;i++){
+        if(strcmp(parent[i].name,token1)==0){
+            return i;
+        }
+
+    }
+    return -1;
+
+}
+

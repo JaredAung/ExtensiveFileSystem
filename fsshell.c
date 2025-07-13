@@ -544,7 +544,7 @@ int cmd_cd (int argcnt, char *argvec[])
 int cmd_pwd (int argcnt, char *argvec[])
 	{
 #if (CMDPWD_ON == 1)
-	char * dir_buf = malloc (DIRMAX_LEN +1);
+	char * dir_buf = mc (DIRMAX_LEN +1);
 	char * ptr;	
 	ptr = fs_getcwd (dir_buf, DIRMAX_LEN);	
 	if (ptr == NULL)			//an error occurred

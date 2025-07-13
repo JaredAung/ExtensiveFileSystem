@@ -34,11 +34,20 @@ typedef struct{
 
 }DE;
 
+typedef struct{
+    DE* parent;
+    int index;
+    char* lastElementName;
+}ppInfo;
+
 //creates a directory with a given number of entries at 
 //the provided path
 DE* createDir(int numEntries,DE* parent);
 
 
 int writeDir(DE* newDir);//writes a directory to disk
+
+//Takes a path and verifies it is a valid path in the fs
+int parsePath(char*path);
 
 #endif
