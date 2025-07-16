@@ -29,6 +29,8 @@
 #define FS_SIGNATURE "MFSv1.0\0"
 #define BLOCK_SIZE 512	//default block size
 
+DE* root;
+
 Extent *allocateFreeBlocks(uint32_t minExtentLength, uint32_t *extentsAllocated)
 {
 
@@ -107,6 +109,7 @@ Extent *allocateFreeBlocks(uint32_t minExtentLength, uint32_t *extentsAllocated)
 	// lets return the allocated extents and count
 	*extentsAllocated = resultIndex;
 	free(table);
+	
 	return allocatedExtents;
 }
 
@@ -152,7 +155,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 {
 	//printf("Kentucky Kernels\n");
 	printf("Initializing File System with %ld blocks with a block size of %ld\n", numberOfBlocks, blockSize);
-
+	
 	// allocate Volume Control Block
 	VCB *vcb = (VCB *)calloc(1, blockSize);
 	if (!vcb) // check allocation was successful
@@ -189,9 +192,12 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 		return -1;
 	};
 
+	
+
 	//printf("blockSize: %d total blocks: %d Extent table start: %d extent table blocks: %d \n", vcb->blockSize,vcb->totalBlocks,vcb->extentTableStart,vcb->extentTableBlocks);
 	//printf("rootDir start: %d root dir blocks %d free block start %d create %ld mount %ld\n", vcb->rootDirStart, vcb->rootDirBlocks, vcb->freeBlockStart, vcb->createTime, vcb->lastMountTime);
 
+	setRoot();//Sets a variable to hold the root while running
 	free(vcb); // free allocated memory
 	return 0;
 }
@@ -200,3 +206,33 @@ void exitFileSystem()
 {
 	printf("System exiting\n");
 }
+
+int setRoot(){
+		//Load VCB to get root info
+		VCB* tempVCB =malloc(sizeof(VCB));
+		if(LBAread(tempVCB, 1,0)!= 1){
+			return -1; //read failed
+		};
+
+		int rootLoc = tempVCB->rootDirStart;
+		int rootSize = tempVCB->rootDirBlocks;
+
+		//Get block size info
+		struct fs_stat* temp = malloc(sizeof(struct fs_stat));
+		fs_stat("/",temp);
+
+		int block_size =temp->st_blksize;
+		
+		//allocate memory for global root
+		root = malloc(block_size*rootSize);
+
+		if(LBAread(root,rootSize,rootLoc)!=rootSize){
+			return -1;
+		};
+		return 0;
+
+	}
+
+	DE* getRootDir(){
+		return root;
+	}

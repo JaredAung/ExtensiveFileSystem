@@ -17,6 +17,7 @@
 #include <time.h>
 #include "fsLow.h"
 #include "dirLow.h"
+#include "fsInit.h"
 #include <stdio.h>
 
 #define MAX_NAME_LENGTH 255
@@ -178,16 +179,6 @@ int parsePath(char* path,ppInfo* info){
 
     }
 }
-
-DE* getRootDir(){
-    
-}
-
-
-
-int isDir();
-
-DE* loadDir(DE* dir);
 
 
 /**

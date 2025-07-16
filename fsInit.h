@@ -15,6 +15,7 @@
 #define FSINIT
 
 #include <stdlib.h>
+#include "dirLow.h"
 
 #define EXTENT_TABLE_BLOCKS 2
 
@@ -50,5 +51,7 @@ Extent *allocateFreeBlocks(uint32_t minExtentLength, uint32_t *extentsAllocated)
 int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize);
 
 void exitFileSystem ();
+
+DE* getRoot();
 
 #endif

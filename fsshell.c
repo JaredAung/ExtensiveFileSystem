@@ -28,6 +28,7 @@
 #include "fsLow.h"
 #include "mfs.h"
 #include "fsInit.h"
+#include "dirLow.h"
 
 #define PERMISSIONS (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)
 
@@ -48,6 +49,8 @@
 #define CMDPWD_ON	0
 #define CMDTOUCH_ON	0
 #define CMDCAT_ON	0
+
+DE* root;//global to store "." entry of root directory
 
 
 typedef struct dispatch_t
@@ -71,6 +74,7 @@ int cmd_cd (int argcnt, char *argvec[]);
 int cmd_pwd (int argcnt, char *argvec[]);
 int cmd_history (int argcnt, char *argvec[]);
 int cmd_help (int argcnt, char *argvec[]);
+int setRoot();
 
 dispatch_t dispatchTable[] = {
 	{"ls", cmd_ls, "Lists the file in a directory"},
@@ -848,3 +852,5 @@ int main (int argc, char * argv[])
 		cmd = NULL;		
 		} // end while
 	}
+
+	
