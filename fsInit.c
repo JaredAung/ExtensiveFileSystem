@@ -25,6 +25,8 @@
 #include "fsInit.h"
 #include "dirLow.h"
 
+DE* root;
+
 
 int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 {
@@ -108,6 +110,6 @@ int setRoot(){
 
 	}
 
-	DE* getRootDir(){
+	DE* getRoot(){
 		return root;
 	}
