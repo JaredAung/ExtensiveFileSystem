@@ -51,4 +51,6 @@ int parsePath(char* path,ppInfo* info);
 //writes a directory to disk
 int writeDir(DE* newDir);
 
+DE* getRootDir();
+
 #endif
