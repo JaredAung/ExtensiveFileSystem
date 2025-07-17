@@ -84,32 +84,3 @@ void exitFileSystem()
 	printf("System exiting\n");
 }
 
-int setRoot(){
-		//Load VCB to get root info
-		VCB* tempVCB =malloc(sizeof(VCB));
-		if(LBAread(tempVCB, 1,0)!= 1){
-			return -1; //read failed
-		};
-
-		int rootLoc = tempVCB->rootDirStart;
-		int rootSize = tempVCB->rootDirBlocks;
-
-		//Get block size info
-		struct fs_stat* temp = malloc(sizeof(struct fs_stat));
-		fs_stat("/",temp);
-
-		int block_size =temp->st_blksize;
-		
-		//allocate memory for global root
-		root = malloc(block_size*rootSize);
-
-		if(LBAread(root,rootSize,rootLoc)!=rootSize){
-			return -1;
-		};
-		return 0;
-
-	}
-
-	DE* getRoot(){
-		return root;
-	}

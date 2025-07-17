@@ -16,6 +16,7 @@
 
 #include <stdlib.h>
 #include "fsFreeSpace.h"
+#include "dirLow.h"
 
 
 #define ROOT_DIRECTORY_BLOCKS 2 // Edit this as needed
@@ -42,6 +43,5 @@ int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize);
 
 void exitFileSystem ();
 
-DE* getRoot();
 
 #endif

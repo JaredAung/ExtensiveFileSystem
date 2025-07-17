@@ -17,10 +17,19 @@
 #include <time.h>
 #include "dirLow.h"
 #include "fsInit.h"
+#include "mfs.h"
 #include <stdio.h>
 
 #define MAX_NAME_LENGTH 255
 #define BLOCK_SIZE 512
+
+DE* root =NULL;
+
+int findInDir(DE* parent,char* token1);
+DE* loadDir(DE* dir);
+int setRoot();
+DE* getRootDir();
+
 
 
 DE* createDir(int numEntries,DE* parent){
@@ -112,6 +121,10 @@ int writeDir(DE* newDir){
  */
 int parsePath(char* path,ppInfo* info){
 
+    if(root = NULL){
+        setRoot();
+    }
+
     if(path == NULL){//empty path invalid
         return -1;
     }
@@ -132,7 +145,7 @@ int parsePath(char* path,ppInfo* info){
 
     parent = startParent;
 
-    token1 = strtok_r(path, "/", savePtr);
+    token1 = strtok_r(path, "/", &savePtr);
 
     if(token1==NULL){
         if(path[0]=='/'){//passed the root directory
@@ -162,7 +175,7 @@ int parsePath(char* path,ppInfo* info){
             return -1;
         }
 
-        if(!isDir(&parent[idx])){
+        if(parent[idx].isDir!='1'){
             return -1;
         }
 
@@ -178,17 +191,37 @@ int parsePath(char* path,ppInfo* info){
 
     }
 }
-/*
-DE* getRootDir(){
+
+
+DE* loadDir(DE* dir){
+    if(dir == NULL){
+        return NULL;//invalid input
+    }
     
+    if(dir->isDir!= '1'){
+        return NULL;//is not a directory
+    }
+
+    DE* tempDir = malloc(dir->size);
+
+    int extInDir = dir->mem.extentCount;
+    int index = 0;
+
+    for(int i = 0; i<extInDir;i++){
+        int loc =dir->mem.extents[i].block;
+        int blocks = dir->mem.extents[i].count;
+        LBAread(&(tempDir[index]),blocks,loc);
+
+    }
+    
+
+    
+    return tempDir;
+    
+
+
 }
 
-
-
-int isDir();
-
-DE* loadDir(DE* dir);
-*/
 
 /**
  * Return the index of the token if the token 
@@ -207,4 +240,35 @@ int findInDir(DE* parent,char* token1){
     return -1;
 
 }
+
+int setRoot(){
+		//Load VCB to get root info
+		VCB* tempVCB =malloc(sizeof(VCB));
+		if(LBAread(tempVCB, 1,0)!= 1){
+			return -1; //read failed
+		};
+
+		int rootLoc = tempVCB->rootDirStart;
+		int rootSize = tempVCB->rootDirBlocks;
+
+		//Get block size info
+		struct fs_stat* temp = malloc(sizeof(struct fs_stat));
+		fs_stat("/",temp);
+
+		int block_size =temp->st_blksize;
+		
+		//allocate memory for global root
+		root = malloc(block_size*rootSize);
+
+		if(LBAread(root,rootSize,rootLoc)!=rootSize){
+			return -1;
+		};
+		return 0;
+
+	}
+
+	DE* getRoot(){
+		return root;
+	}
+
 
