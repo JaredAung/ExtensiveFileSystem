@@ -15,7 +15,6 @@
 
 #include <stdint.h>
 #include <time.h>
-#include "fsLow.h"
 #include "dirLow.h"
 #include <stdio.h>
 
@@ -178,7 +177,7 @@ int parsePath(char* path,ppInfo* info){
 
     }
 }
-
+/*
 DE* getRootDir(){
     
 }
@@ -188,7 +187,7 @@ DE* getRootDir(){
 int isDir();
 
 DE* loadDir(DE* dir);
-
+*/
 
 /**
  * Return the index of the token if the token 
