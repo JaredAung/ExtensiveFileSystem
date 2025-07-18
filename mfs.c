@@ -307,119 +307,126 @@ void safeFree(DE* dir){
 
 }
 
-// This function will set the current working directory.
-int fs_setcwd(char *pathname){
-    //We need to allocate memory for return value of parsePath
-    ppInfo* ppi    = malloc(sizeof(ppInfo));
-    char  *pathCpy = strdup(pathname);
+
+// fs_opendir opens a directory by loading all its DE from disk and return fdDir* 
+// handle that can be used to iterate through the entries
+fdDir * fs_opendir (const char *pathname){
+    ppInfo info;
+    // Parse the path into parent directory and target entry
     
-    int retVal = parsePath(pathCpy, ppi);
-    free(pathCpy);
+    if (parsePath((char*)pathname,&info) != 0){
+        return NULL; 
+    }
+
     
-    //We need to check for errors
-    if(ppi->index < 0){
-        freePPI(ppi);
-        return -1;
+    DE* dir;
+    // check if the path is root directory
+    if(info.index != -1){
+        // get the DE at the desired index inside parent directory
+        dir = &info.parent[info.index];
     }
-    //We need to check for errors
-    if(retVal < 0){
-        freePPI(ppi);
-        printf("fs_setcwd:ERROR IN PARSE PATH: %d\n", retVal);
-        return retVal;
+    else {
+        // root directory
+        dir = info.parent;
+    }
+
+    // check directory exists and is a valid directory
+    if(!dir || !dir->isDir){
+        safeFree(info.parent);
+        return NULL;
+    }
+
+    
+    fdDir* dirp = malloc(sizeof(fdDir));
+    if (!dirp) return NULL;
+
+    // allocate structure to hold directory entry information
+    DirHandle* handle = malloc(sizeof(DirHandle));
+    if (!handle){
+        free(dirp);
+        return NULL;
+    }
+
+    // Count the total DEs in all extents
+    int totalDEs = 0;
+    for (int i = 0; i < dir->mem.extentCount;i++){
+        totalDEs += dir->mem.extents[i].count * (BLOCK_SIZE/sizeof(DE));
+    }
+
+    // Allocate space to store all the DEs
+    handle->entries = malloc(totalDEs * sizeof(DE));
+    if (!handle->entries){
+        free(handle);
+        free(dirp);
+        return NULL;
+    }
+
+    int currentDE = 0;
+
+    // copies all the directory entires into entries array
+    for (int i =0; i < dir->mem.extentCount; i++){
+        int startBlock = dir->mem.extents[i].block;
+        int numBlocks = dir->mem.extents[i].count;
+
+        for (int j = 0; j < numBlocks; j++){
+            void* buffer = malloc(BLOCK_SIZE);
+            if(!buffer) continue;
+
+            LBAread(buffer,1,startBlock + j);
+            int entriesInBlock = BLOCK_SIZE / sizeof(DE);
+            memcpy(&handle->entries[currentDE], buffer, BLOCK_SIZE);
+            currentDE += entriesInBlock;
+
+            free(buffer);
+        }
     }
     
-    DE* entry = ppi->parent;
-    //We need to make sure last value is a valid directory
-    if(!entryIsDir(entry, ppi->index)){
-        printf("fs_setcwd: is not a valid path\n");
-        freePPI(ppi);
-        return -1;
+    // Set metadata
+    handle->totalEntries = currentDE;
+    handle-> currentIndex = 0;
+
+    dirp->d_reclen = sizeof(fdDir);
+    dirp->dirEntryPosition = 0;
+    dirp->di = (struct  fs_diriteminfo *) handle;
+
+    safeFree(info.parent);
+    return dirp;
+
+}
+// read the next entry in directory
+struct fs_diriteminfo *fs_readdir(fdDir *dirp){
+    // validate directory and handle
+    if (!dirp || !dirp->di) return NULL;
+
+    // Cast to DirHandle for access
+    DirHandle* handle = (DirHandle*)(dirp->di);
+
+    // iterate through all the DEs until a valid entry is found or end is reacted
+    // for valid entry, fill the details in diriteminfo structure 
+    while(handle->currentIndex < handle->totalEntries){
+        DE * entry = &handle->entries[handle->currentIndex++];
+        if(entry->name[0] == '\0') continue; // skip empty entries
+
+        struct fs_diriteminfo * info = malloc(sizeof(struct fs_diriteminfo));
+        info->d_reclen = sizeof(struct fs_diriteminfo);
+        info->fileType = entry->isDir ? FT_DIRECTORY : FT_REGFILE;
+        strncpy(info->d_name,entry->name,255);
+        info->d_name[255] = '\0';
+        return info;
+
     }
-    //We need to load the directory to memory
-    DE* cwd = loadDir(entry, ppi->index);
-    //We need to set current directory
-    freePPI(ppi);
-    setCWD(cwd);
-    //We need to update str value of CWD
-    pathCleaner(pathname);
+    return NULL;
+}
+
+
+// close the directory and free memory
+int fs_closedir(fdDir* dirp) {
+    if(!dirp) return -1;
+    DirHandle* handle = (DirHandle*)(dirp->di);
+    if (handle){
+        if (handle->entries) free(handle->entries);
+        free(handle);
+    }
+    free(dirp);
     return 0;
 }
-
-//This function gets the current working directory.
-char* fs_getcwd(char *pathname, size_t size){
-    char* retVal = strncpy(pathname, getCWDStr(), size);
-    return retVal;
-}
-
-//this function (fs_isFile) returns 1 if it is a file, 0 if it not
-int fs_isFile(const char * filename){
-    //We need to allocate memory for return value of parsePath
-    ppInfo* ppi = malloc(sizeof(ppInfo));
-    if (ppi == NULL) {
-        return -1;
-    }
-    
-    char *pathCpy = strdup(filename);
-    if (pathCpy == NULL) {
-        free(ppi);
-        return -1;
-    }
-    
-    int retVal = parsePath(pathCpy, ppi);
-    free(pathCpy);
-    
-    //We need to check for errors (does not exist)
-    if(ppi->index == -1){
-        freePPI(ppi);
-        return 0;
-    }
-    //We need to check for parse errors
-    if(retVal < 0){
-        freePPI(ppi);
-        printf("fs_isFile: ERROR IN PARSE PATH: %d\n", retVal);
-        return 0;
-    }
-    
-    //We need to check whether it is not a directory
-    int isFile = !entryIsDir(ppi->parent, ppi->index);
-    freePPI(ppi);
-    return isFile;
-}
-
-// This Function returns if the directory is file or directory.
-int fs_isDir(char * filename){
-    // We need to allocate memory for return value of parsePath
-    ppInfo* ppi = malloc(sizeof(ppInfo));
-    if (ppi == NULL) {
-        return -1;
-    }
-    
-    char *pathCpy = strdup(filename);
-    if (pathCpy == NULL) {
-        freePPI(ppi);
-        return -1;
-    }
-    
-    int retVal = parsePath(pathCpy, ppi);
-    free(pathCpy);
-    
-    //We need to check for errors 
-    if (ppi->index == -1) {
-        freePPI(ppi);
-        return 0;
-    }
-    
-    //We need to check for parse errors
-    if (retVal < 0) {
-        freePPI(ppi);
-        printf("fs_isFile: ERROR IN PARSE PATH: %d\n", retVal);
-        return 0;
-    }
-    
-    // We need to check whether it is a directory
-    retVal = entryIsDir(ppi->parent, ppi->index);
-    freePPI(ppi);
-    return retVal;
-}
-
-
