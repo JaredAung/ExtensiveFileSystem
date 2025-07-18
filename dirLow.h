@@ -47,10 +47,11 @@ DE* createDir(int numEntries,DE* parent);
 
 
 //Takes a path and verifies it is a valid path in the fs
-int parsePath(char* path,ppInfo* info);
+int parsePath(const char* path,ppInfo* info);
 
 //writes a directory to disk
 int writeDir(DE* newDir);
+DE* loadDir(DE* dir);
 
 DE *getRootDir(void);
 DE *getCwd(void);

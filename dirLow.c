@@ -136,13 +136,18 @@ int writeDir(DE* newDir){
  * Takes a file path and an info structure
  * returns 0 on success, -1 on doesnt exist 
  */
-int parsePath(char* path,ppInfo* info){
+int parsePath(const char* pathname,ppInfo* info){
 
     if(root = NULL){
         setRoot();
     }
 
-    if(path == NULL){//empty path invalid
+    if(pathname == NULL){//empty path invalid
+        return -1;
+    }
+
+    int pathLength = strlen(pathname);
+    if(pathLength <1){
         return -1;
     }
 
@@ -151,6 +156,11 @@ int parsePath(char* path,ppInfo* info){
     char* savePtr;
     char* token1;
     char* token2;
+
+    char*path = malloc(pathLength+1);
+    
+
+    strcpy(path,pathname);
     
     //Sets starting point of path search
     if(path[0]=='/'){
@@ -169,10 +179,11 @@ int parsePath(char* path,ppInfo* info){
             info->parent = parent;
             info->index = -2;
             info->lastElementName = NULL;
-
+            free(path);
             return 0;
         }
         else{
+            free(path);
             return -1;
         }
     }
@@ -185,23 +196,27 @@ int parsePath(char* path,ppInfo* info){
             info->parent = parent;
             info->index = idx;
             info->lastElementName = token1;
+            free(path);
             return 0;
         }
 
         if(idx ==-1){
+            free(path);
             return -1;
         }
 
         if(parent[idx].isDir!='1'){
+            free(path);
             return -1;
         }
 
         DE* tempParent = loadDir(&(parent[idx]));
 
         if(parent!= startParent){
+            
             free(parent);
         }
-
+        
         parent = tempParent;
 
         token1=token2;

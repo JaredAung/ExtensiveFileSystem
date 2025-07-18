@@ -23,8 +23,17 @@
 #include "dirLow.h"
 #include "fsFreeSpace.h"
 
+VCB* getVCB();
+int findFreeDE(DE* parent);
+void safeFree(DE* dir);
+int expandDirectory(DE* dir);
+int freeBlocks(ExtentTable* mem);
+int freePPI(ppInfo* info);
+int entryIsDir(ppInfo* ppi);
+
 int fs_mkdir(const char *pathname, mode_t mode){
     ppInfo ppi;
+
 
     int retPP = parsePath(pathname,&ppi);
 
@@ -65,7 +74,7 @@ int findFreeDE(DE* parent){
     if(parent = NULL){
         return -1;
     }
-    if(!isDir(parent)){
+    if(parent->isDir!='1'){
         return -1;
     }
 
@@ -204,13 +213,13 @@ int fs_setcwd(char *pathname){
     
     DE* entry = ppi->parent;
     //We need to make sure last value is a valid directory
-    if(!entryIsDir(entry, ppi->index)){
+    if(entry[ppi->index].isDir=='1'){
         printf("fs_setcwd: is not a valid path\n");
         freePPI(ppi);
         return -1;
     }
     //We need to load the directory to memory
-    DE* cwd = loadDir(entry, ppi->index);
+    DE* cwd = loadDir(&(entry[ppi->index]));
     //We need to set current directory
     freePPI(ppi);
     setCwdDir(cwd);
@@ -255,7 +264,7 @@ int fs_isFile(char * filename){
     }
     
     //We need to check whether it is not a directory
-    int isFile = !entryIsDir(ppi->parent, ppi->index);
+    int isFile = !entryIsDir(ppi);
     freePPI(ppi);
     return isFile;
 }
@@ -291,7 +300,7 @@ int fs_isDir(char * filename){
     }
     
     // We need to check whether it is a directory
-    retVal = entryIsDir(ppi->parent, ppi->index);
+    retVal = entryIsDir(ppi);
     freePPI(ppi);
     return retVal;
 }
@@ -429,4 +438,35 @@ int fs_closedir(fdDir* dirp) {
     }
     free(dirp);
     return 0;
+}
+
+VCB* getVCB(){
+    VCB* temp = malloc(BLOCK_SIZE);
+    LBAread(temp, 1,0);
+    return temp;
+}
+
+int freePPI(ppInfo* info){
+    if(info ==NULL){
+        return -1;
+    }
+
+    free(info);
+    return 0;
+}
+
+int entryIsDir(ppInfo* ppi){
+    if(ppi==NULL){
+        return -1;
+    }
+
+    if(ppi->parent[ppi->index].isDir=='0'){
+        return 0;
+    }
+
+    if(ppi->parent[ppi->index].isDir=='1'){
+        return 1;
+    }
+
+    return -1;
 }
