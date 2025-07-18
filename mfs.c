@@ -213,7 +213,7 @@ int fs_setcwd(char *pathname){
     DE* cwd = loadDir(entry, ppi->index);
     //We need to set current directory
     freePPI(ppi);
-    setCWD(cwd);
+    setCwdDir(cwd);
     //We need to update str value of CWD
     pathCleaner(pathname);
     return 0;

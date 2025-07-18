@@ -17,6 +17,8 @@
 #include "mfs.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "fsInit.h"      // for VCB struct
+#include "fsFreeSpace.h" 
 
 VCB *vcb = NULL;
 

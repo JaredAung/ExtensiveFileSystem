@@ -50,7 +50,7 @@
 #define CMDTOUCH_ON	0
 #define CMDCAT_ON	0
 
-DE* root;//global to store "." entry of root directory
+//DE* root;//global to store "." entry of root directory
 
 
 typedef struct dispatch_t

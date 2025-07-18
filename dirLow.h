@@ -19,7 +19,8 @@
 #include <string.h>
 #include "fsInit.h"
 #include "fsLow.h"
-
+#include "fsFreeSpace.h" 
+#include "fsFreeSpace.h" 
 #define MAX_NAME_LENGTH 255
 
 
@@ -51,6 +52,10 @@ int parsePath(char* path,ppInfo* info);
 //writes a directory to disk
 int writeDir(DE* newDir);
 
-DE* getRootDir();
+DE *getRootDir(void);
+DE *getCwd(void);
+
+void setRootDir(DE *root);
+void setCwdDir (DE *cwd);
 
 #endif

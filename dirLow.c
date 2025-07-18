@@ -24,13 +24,30 @@
 #define BLOCK_SIZE 512
 
 DE* root =NULL;
+static DE *g_rootDir = NULL;
+static DE *g_cwdDir  = NULL;
 
 int findInDir(DE* parent,char* token1);
 DE* loadDir(DE* dir);
 int setRoot();
-DE* getRootDir();
+//DE* getRootDir();
 
+void setRootDir(DE *root) { 
+    g_rootDir = root;  
+    g_cwdDir = root; 
+}  
 
+void setCwdDir (DE *cwd)  { 
+    g_cwdDir  = cwd;               
+    }
+
+DE *getRootDir(void) { 
+    return g_rootDir;
+    }
+
+DE *getCwd   (void) { 
+    return g_cwdDir;  
+    }
 
 DE* createDir(int numEntries,DE* parent){
     int memNeeded = numEntries*sizeof(DE);
@@ -140,7 +157,7 @@ int parsePath(char* path,ppInfo* info){
         startParent = getRootDir();
     }
     else{
-        startParent = fs_getcwd();
+        startParent = getCwd();
     }
 
     parent = startParent;
@@ -214,12 +231,8 @@ DE* loadDir(DE* dir){
 
     }
     
-
-    
     return tempDir;
     
-
-
 }
 
 
@@ -252,10 +265,12 @@ int setRoot(){
 		int rootSize = tempVCB->rootDirBlocks;
 
 		//Get block size info
-		struct fs_stat* temp = malloc(sizeof(struct fs_stat));
-		fs_stat("/",temp);
+		// struct fs_stat* temp = malloc(sizeof(struct fs_stat));
+		// fs_stat("/",temp);
 
-		int block_size =temp->st_blksize;
+		// int block_size =temp->st_blksize;
+        int block_size = tempVCB->blockSize;
+        free(tempVCB);
 		
 		//allocate memory for global root
 		root = malloc(block_size*rootSize);
@@ -264,10 +279,9 @@ int setRoot(){
 			return -1;
 		};
 		return 0;
-
 	}
 
-	DE* getRoot(){
+DE* getRoot(){
 		return root;
 	}
 

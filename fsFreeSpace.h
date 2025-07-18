@@ -18,7 +18,7 @@
 #define EXTENT_TABLE_BLOCKS 25
 
 #include <stdint.h>
-#include "fsInit.h"
+//#include "fsInit.h"
 
 typedef struct Extent{
 	uint32_t block; //block location
