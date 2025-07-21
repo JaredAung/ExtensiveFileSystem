@@ -20,16 +20,18 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "b_io.h"
+#include "dirLow.h"
 
 #define MAXFCBS 20
 #define B_CHUNK_SIZE 512
 
 typedef struct b_fcb
 	{
-	/** TODO add al the information you need in the file control block **/
-	char * buf;		//holds the open file buffer
+	char * buff;		//holds the open file buffer
 	int index;		//holds the current position in the buffer
 	int buflen;		//holds how many valid bytes are in the buffer
+	off_t filePosition; // current offset in file (could use uint64_t ?)
+	DE *fi;			// pointer to file's directory entry
 	} b_fcb;
 	
 b_fcb fcbArray[MAXFCBS];
@@ -42,7 +44,7 @@ void b_init ()
 	//init fcbArray to all free
 	for (int i = 0; i < MAXFCBS; i++)
 		{
-		fcbArray[i].buf = NULL; //indicates a free fcbArray
+		fcbArray[i].buff = NULL; //indicates a free fcbArray
 		}
 		
 	startup = 1;
@@ -67,15 +69,24 @@ b_io_fd b_getFCB ()
 b_io_fd b_open (char * filename, int flags)
 	{
 	b_io_fd returnFd;
-
-	//*** TODO ***:  Modify to save or set any information needed
-	//
-	//
 		
 	if (startup == 0) b_init();  //Initialize our system
 	
 	returnFd = b_getFCB();				// get our own file descriptor
 										// check for error - all used FCB's
+	if(returnFd < 0) return -1; //No available FCB
+
+	ppInfo info;
+	if(parsePath(filename, &info) != 0) return -1; 
+
+	DE *fileEntry = &info.parent->mem.extents[info.index];
+	if(fileEntry->isDir) return -1; 	// can't open a directory  
+
+	fcbArray[returnFd].buff = malloc(B_CHUNK_SIZE);
+	fcbArray[returnFd].index = 0;
+	fcbArray[returnFd].buflen = 0;
+	fcbArray[returnFd].filePosition = 0;
+	fcbArray[returnFd].fi = fileEntry;
 	
 	return (returnFd);						// all set
 	}
