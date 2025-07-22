@@ -83,8 +83,8 @@ int findFreeDE(DE* parent){
 
     char emptyDirName ='\0';
     int index;
-    for(int index = 0; index<dirEntries;index++){
-        if(strcmp(parent[index].name,&emptyDirName)==0){
+    for(index = 0; index<dirEntries;index++){
+        if(parent[index].name[0]=='\0'){
             return index;
         }
     }
