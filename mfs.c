@@ -31,34 +31,40 @@ int expandDirectory(DE* dir);
 int freeBlocks(ExtentTable* mem);
 void freePPI(ppInfo* info);
 
-int fs_mkdir(const char *pathname, mode_t mode){
+int fs_mkdir(const char *pathname, mode_t mode)
+{
     ppInfo ppi;
 
-
-    int retPP = parsePath(pathname,&ppi);
+    int retPP = parsePath(pathname, &ppi);
     printf("parsePath completed\n");
-    if(retPP!=0){
+    if (retPP != 0)
+    {
         return -1;
     }
 
-    if(ppi.index !=-1){
+    if (ppi.index != -1)
+    {
         return -2;
     }
 
-    DE* newDir = createDir(50,ppi.parent);
+    DE *newDir = createDir(50, ppi.parent);
     printf("createDir completed\n");
+
     int index = findFreeDE(ppi.parent);
     printf("findFreeDE completed\n");
-    ppi.parent[index].size=newDir[0].size;
-    ppi.parent[index].isDir=newDir[0].isDir;
-    ppi.parent[index].creationTime=newDir[0].creationTime;
-    ppi.parent[index].lastAccessTime=newDir[0].lastAccessTime;
-    ppi.parent[index].modificationTime=newDir[0].creationTime;
-    ppi.parent[index].mem = newDir[0].mem;
-    strncpy(ppi.parent[index].name,ppi.lastElementName,MAX_NAME_LENGTH);
 
-    if(writeDir(ppi.parent)!=0){
-        return -3;  //failed write to save dir
+    ppi.parent[index].size = newDir[0].size;
+    ppi.parent[index].isDir = newDir[0].isDir;
+    ppi.parent[index].creationTime = newDir[0].creationTime;
+    ppi.parent[index].lastAccessTime = newDir[0].lastAccessTime;
+    ppi.parent[index].modificationTime = newDir[0].creationTime;
+    ppi.parent[index].mem = newDir[0].mem;
+    
+    strncpy(ppi.parent[index].name, ppi.lastElementName, MAX_NAME_LENGTH);
+
+    if (writeDir(ppi.parent) != 0)
+    {
+        return -3; // failed write to save dir
     };
     free(newDir);
     safeFree(ppi.parent);
@@ -378,11 +384,15 @@ fdDir * fs_opendir (const char *pathname){
     }
 
     fdDir* dirp = malloc(sizeof(fdDir));
-    if (!dirp) return NULL;
+    if (!dirp){
+        printf("could not malloc fdDir dirp\n");
+        return NULL;
+    } 
 
     // allocate structure to hold directory entry information
     DirHandle* handle = malloc(sizeof(DirHandle));
     if (!handle){
+        printf("could not allocate DirHandle\n");
         free(dirp);
         return NULL;
     }
@@ -396,6 +406,7 @@ fdDir * fs_opendir (const char *pathname){
     // Allocate space to store all the DEs
     handle->entries = malloc(totalDEs * sizeof(DE));
     if (!handle->entries){
+        printf("could not malloc handle->entries\n");
         free(handle);
         free(dirp);
         return NULL;
@@ -424,8 +435,11 @@ fdDir * fs_opendir (const char *pathname){
         memcpy(&handle->entries[currentDE], buffer, entries * sizeof(DE));
         currentDE += entries;
 
+        printf("before free(buffer) inside while loop\n");
         free(buffer);
     }
+
+    printf("after while loop\n");
 
 /*
     // copies all the directory entires into entries array
@@ -475,18 +489,25 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp){
     DirHandle* handle = dirp->handle;
 
     // iterate through all the DEs until a valid entry is found or end is reacted
-    // for valid entry, fill the details in diriteminfo structure 
-    while(handle->currentIndex < handle->totalEntries){
-        DE * entry = &handle->entries[handle->currentIndex++];
-        if(entry->name[0] == '\0') continue; // skip empty entries
+    // for valid entry, fill the details in diriteminfo structure
+    while (handle->currentIndex < handle->totalEntries)
+    {
+        DE *entry = &handle->entries[handle->currentIndex++];
+        if (entry->name[0] == '\0')
+            continue; // skip empty entries
+
         printf("Reading entry: %s\n", entry->name);
-        struct fs_diriteminfo * info = malloc(sizeof(struct fs_diriteminfo));
+
+        struct fs_diriteminfo *info = malloc(sizeof(struct fs_diriteminfo));
+
         info->d_reclen = sizeof(struct fs_diriteminfo);
         info->fileType = entry->isDir ? FT_DIRECTORY : FT_REGFILE;
-        strncpy(info->d_name,entry->name,255);
-        info->d_name[255] = '\0';
-        return info;
 
+        strncpy(info->d_name, entry->name, 255);
+
+        info->d_name[255] = '\0';
+
+        return info;
     }
     return NULL;
 }

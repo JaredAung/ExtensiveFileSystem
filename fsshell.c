@@ -42,7 +42,7 @@
 #define CMDLS_ON	1
 #define CMDCP_ON	0
 #define CMDMV_ON	0
-#define CMDMD_ON	0
+#define CMDMD_ON	1
 #define CMDRM_ON	0
 #define CMDCP2L_ON	0
 #define CMDCP2FS_ON	0
@@ -107,12 +107,16 @@ int displayFiles (fdDir * dirp, int flall, int fllong)
 	
 	di = fs_readdir (dirp);
 	printf("\n");
+	printf("after Reading directory from inside display files\n");
 	while (di != NULL) 
 		{
+		printf("after while loop inside display files\n");
 		if ((di->d_name[0] != '.') || (flall)) //if not all and starts with '.' it is hidden
 			{
+			printf("inside first if inside display files\n");
 			if (fllong)
 				{
+				printf("inside second if inside display files\n");
 				fs_stat (di->d_name, &statbuf);
 				printf ("%s    %9ld   %s\n", fs_isDir(di->d_name)?"D":"-", statbuf.st_size, di->d_name);
 				}
@@ -121,6 +125,7 @@ int displayFiles (fdDir * dirp, int flall, int fllong)
 				printf ("%s\n", di->d_name);
 				}
 			}
+		printf("after first if inside display files. di->d_name: %s\n", di->d_name);
 		di = fs_readdir (dirp);
 		}
 	fs_closedir (dirp);
