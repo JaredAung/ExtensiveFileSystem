@@ -37,7 +37,7 @@ int fs_mkdir(const char *pathname, mode_t mode){
 
 
     int retPP = parsePath(pathname,&ppi);
-
+    printf("parsePath completed\n");
     if(retPP!=0){
         return -1;
     }
@@ -47,9 +47,9 @@ int fs_mkdir(const char *pathname, mode_t mode){
     }
 
     DE* newDir = createDir(50,ppi.parent);
-
+    printf("createDir completed\n");
     int index = findFreeDE(ppi.parent);
-
+    printf("findFreeDE completed\n");
     ppi.parent[index].size=newDir[0].size;
     ppi.parent[index].isDir=newDir[0].isDir;
     ppi.parent[index].creationTime=newDir[0].creationTime;
@@ -72,7 +72,7 @@ int fs_mkdir(const char *pathname, mode_t mode){
  * if directory is full it expands it.
  */
 int findFreeDE(DE* parent){
-    if(parent = NULL){
+    if(parent == NULL){
         return -1;
     }
     if(parent->isDir!='1'){
@@ -81,10 +81,10 @@ int findFreeDE(DE* parent){
 
     int dirEntries = parent[0].size/sizeof(DE);
 
-    char* emptyDirName ='\0';
+    char emptyDirName ='\0';
     int index;
     for(int index = 0; index<dirEntries;index++){
-        if(strcmp(parent[index].name,emptyDirName)==0){
+        if(strcmp(parent[index].name,&emptyDirName)==0){
             return index;
         }
     }
