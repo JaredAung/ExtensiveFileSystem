@@ -57,9 +57,10 @@ typedef struct
 	unsigned short	dirEntryPosition;	/* which directory entry position, like file pos */
 	//DE *	directory;			/* Pointer to the loaded directory you want to iterate */
 	struct fs_diriteminfo * di;		/* Pointer to the structure you return from read */
+	struct DirHandle *handle;	// Pointer to loaded directory
 	} fdDir;
 
-typedef struct 
+typedef struct DirHandle
 	{
 		DE * entries; // pointer to the array of directory entries loaded from disk
 		int totalEntries; // total number of entries loaded into memory

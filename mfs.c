@@ -379,12 +379,12 @@ fdDir * fs_opendir (const char *pathname){
         int numBlocks = dir->mem.extents[i].count;
 
         for (int j = 0; j < numBlocks; j++){
-            void* buffer = malloc(BLOCK_SIZE);
+            void *buffer = malloc(BLOCK_SIZE);
             if(!buffer) continue;
 
             LBAread(buffer,1,startBlock + j);
             int entriesInBlock = BLOCK_SIZE / sizeof(DE);
-            memcpy(&handle->entries[currentDE], buffer, BLOCK_SIZE);
+            memcpy(&handle->entries[currentDE], buffer, entriesInBlock * sizeof(DE));
             currentDE += entriesInBlock;
 
             free(buffer);
@@ -397,7 +397,8 @@ fdDir * fs_opendir (const char *pathname){
 
     dirp->d_reclen = sizeof(fdDir);
     dirp->dirEntryPosition = 0;
-    dirp->di = (struct  fs_diriteminfo *) handle;
+    dirp->di = NULL;
+    dirp->handle = handle;
 
     safeFree(info.parent);
     return dirp;
@@ -406,10 +407,10 @@ fdDir * fs_opendir (const char *pathname){
 // read the next entry in directory
 struct fs_diriteminfo *fs_readdir(fdDir *dirp){
     // validate directory and handle
-    if (!dirp || !dirp->di) return NULL;
+    if (!dirp || !dirp->handle) return NULL;
 
     // Cast to DirHandle for access
-    DirHandle* handle = (DirHandle*)(dirp->di);
+    DirHandle* handle = dirp->handle;
 
     // iterate through all the DEs until a valid entry is found or end is reacted
     // for valid entry, fill the details in diriteminfo structure 
@@ -453,5 +454,31 @@ int fs_stat(const char *path, struct fs_stat *buf) {
     buf->st_createtime = entry->creationTime;
 
     free(vcb);
+    return 0;
+}
+
+int fs_closedir(fdDir *dirp){
+
+    // Check if pointer is valid
+    if(dirp == NULL){
+        return -1;
+    }
+
+    // Free struct if allocated
+    if(dirp->di != NULL){
+        free(dirp->di);
+        dirp->di = NULL;
+    }
+
+    // Free directory entry via handle
+    if(dirp->handle != NULL){
+        if(dirp->handle->entries != NULL){
+            free(dirp->handle->entries);
+        }
+        free(dirp->handle);
+    }
+
+    free(dirp);
+
     return 0;
 }
