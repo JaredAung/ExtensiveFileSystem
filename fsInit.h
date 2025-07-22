@@ -15,8 +15,10 @@
 #define FSINIT
 
 #include <stdlib.h>
+#include <stdint.h>
+#include <stddef.h>
 #include "fsFreeSpace.h"
-#include "dirLow.h"
+//#include "dirLow.h"
 
 
 #define ROOT_DIRECTORY_BLOCKS 2 // Edit this as needed
@@ -37,7 +39,7 @@ typedef struct VolumeControlBlock{
 	time_t createTime; //time when volume was created
 	time_t lastMountTime; // time when volume was last mounted
 
-}VCB;
+}VCB; 
 
 int initFileSystem (uint64_t numberOfBlocks, uint64_t blockSize);
 

@@ -17,8 +17,13 @@
 
 #define EXTENT_TABLE_BLOCKS 25
 
+#include "fsInit.h" 
 #include <stdint.h>
-//#include "fsInit.h"
+//#include "fsPath.h" 
+
+typedef struct VolumeControlBlock VCB;
+VCB *getVCB(void);       
+
 
 typedef struct Extent{
 	uint32_t block; //block location
@@ -30,6 +35,10 @@ typedef struct ExtentTable{
 	Extent extents[EXTENT_TABLE_BLOCKS]; 
 	uint32_t extentCount; //number of extents in extent table.
 } ExtentTable;
+
+//typedef struct VolumeControlBlock VCB;
+
+//VCB *getVCB(void);
 
 Extent *allocateFreeBlocks(uint32_t minExtentLength, uint32_t *extentsAllocated);
 

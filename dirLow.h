@@ -14,15 +14,15 @@
 #ifndef DIRLOW
 #define DIRLOW
 
+#include "fsFreeSpace.h" 
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
-#include "fsInit.h"
+//#include "fsInit.h"
 #include "fsLow.h"
-#include "fsFreeSpace.h" 
-#include "fsFreeSpace.h" 
 #define MAX_NAME_LENGTH 255
 
+typedef struct ExtentTable ExtentTable;
 
 typedef struct{
     ExtentTable mem;//Extent table to hold Directory entry data
@@ -35,7 +35,7 @@ typedef struct{
 
 }DE;
 
-typedef struct{
+typedef struct {
     DE* parent;
     int index;
     char* lastElementName;

@@ -14,11 +14,11 @@
 
 #include "fsFreeSpace.h"
 #include "fsLow.h"
-#include "mfs.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "fsInit.h"      // for VCB struct
-#include "fsFreeSpace.h" 
+//#include "fsPath.h"
+#include "fsInit.h" 
+
 
 VCB *vcb = NULL;
 
@@ -188,4 +188,14 @@ int initFreeSpace(uint64_t numberOfBlocks, uint64_t blockSize)
     free(extentTable);
 
     return 0;
+}
+
+VCB *getVCB(void) {
+    VCB *vcb = malloc(sizeof(VCB));
+    if (!vcb) return NULL;
+    if ( LBAread(vcb, 1, 0) != 1 ) {
+        free(vcb);
+        return NULL;
+    }
+    return vcb;
 }

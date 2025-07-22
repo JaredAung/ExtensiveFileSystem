@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "fsPath.h"
 
 #include "mfs.h"
 #include "dirLow.h"
@@ -28,7 +29,7 @@ int findFreeDE(DE* parent);
 void safeFree(DE* dir);
 int expandDirectory(DE* dir);
 int freeBlocks(ExtentTable* mem);
-int freePPI(ppInfo* info);
+void freePPI(ppInfo* info);
 int entryIsDir(ppInfo* ppi);
 
 int fs_mkdir(const char *pathname, mode_t mode){
@@ -427,46 +428,30 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp){
     return NULL;
 }
 
-
-// close the directory and free memory
-int fs_closedir(fdDir* dirp) {
-    if(!dirp) return -1;
-    DirHandle* handle = (DirHandle*)(dirp->di);
-    if (handle){
-        if (handle->entries) free(handle->entries);
-        free(handle);
+int fs_stat(const char *path, struct fs_stat *buf) {
+    char *pathCpy = strdup(path);
+    ppInfo info;
+    int ret = parsePath(pathCpy, &info);
+    free(pathCpy);
+    if (ret < 0) {
+        return -1;  // not found or error
     }
-    free(dirp);
+
+    DE *entry = (info.index >= 0)
+        ? &info.parent[info.index]
+        : info.parent;   // “/” itself
+
+    VCB *vcb = getVCB();
+    if (!vcb) return -1;
+
+    buf->st_size       = entry->size;
+    buf->st_blksize    = vcb->blockSize;
+    buf->st_blocks     = (entry->size + vcb->blockSize - 1)
+                         / vcb->blockSize;
+    buf->st_accesstime = entry->lastAccessTime;
+    buf->st_modtime    = entry->modificationTime;
+    buf->st_createtime = entry->creationTime;
+
+    free(vcb);
     return 0;
-}
-
-VCB* getVCB(){
-    VCB* temp = malloc(BLOCK_SIZE);
-    LBAread(temp, 1,0);
-    return temp;
-}
-
-int freePPI(ppInfo* info){
-    if(info ==NULL){
-        return -1;
-    }
-
-    free(info);
-    return 0;
-}
-
-int entryIsDir(ppInfo* ppi){
-    if(ppi==NULL){
-        return -1;
-    }
-
-    if(ppi->parent[ppi->index].isDir=='0'){
-        return 0;
-    }
-
-    if(ppi->parent[ppi->index].isDir=='1'){
-        return 1;
-    }
-
-    return -1;
 }

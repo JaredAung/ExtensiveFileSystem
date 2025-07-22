@@ -19,6 +19,7 @@
 #include "fsInit.h"
 #include "mfs.h"
 #include <stdio.h>
+#include "fsFreeSpace.h" 
 
 #define MAX_NAME_LENGTH 255
 #define BLOCK_SIZE 512
