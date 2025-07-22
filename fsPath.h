@@ -21,7 +21,7 @@
 
 // Additional helper functions for the below functions
 void freePPI(ppInfo *ppi);
-int  entryIsDir(ppInfo *ppi);
+int entryIsDir(ppInfo *ppi);
 
 
 // We need to push the path component to the stack

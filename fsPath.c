@@ -1,7 +1,7 @@
 /**************************************************************
 * Class::  CSC-415-02 Summer 2025
 * Name::Phillip Davis Igor Tello Jared Aung Preet Vithani
-* Student IDs::
+* Student IDs:: , 923043807, 
 * GitHub-Name::R3plug
 * Group-Name::Team Kentucky Kernels
 * Project:: Basic File System
@@ -15,6 +15,7 @@
 
 #include "fsPath.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include "dirLow.h" 
 #include "mfs.h"
@@ -110,5 +111,6 @@ void freePPI(ppInfo *ppi) {
 
 int entryIsDir(ppInfo *ppi) {
     if (!ppi || ppi->index < 0) return 0;
+    printf("is directory = %d\n", ppi->parent[ppi->index].isDir);
     return (ppi->parent[ppi->index].isDir == '1');
 }

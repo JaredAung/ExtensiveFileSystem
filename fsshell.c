@@ -203,6 +203,7 @@ int cmd_ls (int argcnt, char *argvec[])
 	if (optind < argcnt)
 		{
 		//processing arguments after options
+		printf("processing arguments after options\n");
 		for (int k = optind; k < argcnt; k++)
 			{
 			if (fs_isDir(argvec[k]))
@@ -227,6 +228,7 @@ int cmd_ls (int argcnt, char *argvec[])
 		}
 	else   // no pathname/filename specified - use cwd
 		{
+		printf("no pathname/filename specified - use cwd\n");	
 		char * path = fs_getcwd(cwd, DIRMAX_LEN);	//get current working directory
 		fdDir * dirp;
 		dirp = fs_opendir (path);

@@ -24,18 +24,18 @@
 
 typedef struct ExtentTable ExtentTable;
 
-typedef struct{
+typedef struct DE{
     ExtentTable mem;//Extent table to hold Directory entry data
     time_t creationTime;
     time_t modificationTime;    // Directory metadata
     time_t lastAccessTime;
     uint32_t size;// size in bytes of directory
     char name[MAX_NAME_LENGTH];//directory name
-    char isDir;//signal value for if directory entry is a directory
+    int isDir;//signal value for if directory entry is a directory
 
 }DE;
 
-typedef struct {
+typedef struct ppInfo{
     DE* parent;
     int index;
     char* lastElementName;

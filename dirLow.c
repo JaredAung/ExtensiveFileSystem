@@ -84,7 +84,7 @@ DE* createDir(int numEntries,DE* parent){
     newDir[0].mem.extents[0] =*dirMem; //assign directory memory to extent table to '.' entry
     newDir[0].mem.extentCount=1;
 
-    newDir[0].isDir = '1';  //Sentinel value of 1 is True
+    newDir[0].isDir = 1;  //Sentinel value of 1 is True
 
     newDir[0].creationTime = initTime;
     newDir[0].modificationTime = initTime;
@@ -137,7 +137,7 @@ int writeDir(DE* newDir){
  * Takes a file path and an info structure
  * returns 0 on success, -1 on doesnt exist 
  */
-int parsePath(const char* pathname,ppInfo* info){
+int parsePath(const char* pathname, ppInfo* info){
 
     if(root = NULL){
         setRoot();

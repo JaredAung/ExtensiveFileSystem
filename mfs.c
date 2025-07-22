@@ -30,7 +30,6 @@ void safeFree(DE* dir);
 int expandDirectory(DE* dir);
 int freeBlocks(ExtentTable* mem);
 void freePPI(ppInfo* info);
-int entryIsDir(ppInfo* ppi);
 
 int fs_mkdir(const char *pathname, mode_t mode){
     ppInfo ppi;
@@ -273,6 +272,7 @@ int fs_isFile(char * filename){
 // This Function returns if the directory is file or directory.
 int fs_isDir(char * filename){
     // We need to allocate memory for return value of parsePath
+    printf("Checking if is directory\n");
     ppInfo* ppi = malloc(sizeof(ppInfo));
     if (ppi == NULL) {
         return -1;
@@ -306,6 +306,22 @@ int fs_isDir(char * filename){
     return retVal;
 }
 
+/*
+int entryIsDir(ppInfo *ppi){
+
+    if(ppi == NULL || ppi->parent == NULL || ppi->index < 0){
+        return -1;
+    }
+
+    DE *entries = ppi->parent;
+    int index = ppi->index;
+
+    DE entry = entries[index];
+
+    return (entry.isDir != 0) ? 1 : 0;
+}
+*/
+
 /**
  * Check that the dir is not the cwd or root dir
  * then free it
@@ -321,32 +337,46 @@ void safeFree(DE* dir){
 // fs_opendir opens a directory by loading all its DE from disk and return fdDir* 
 // handle that can be used to iterate through the entries
 fdDir * fs_opendir (const char *pathname){
+
+    printf("opening directory: %s\n", pathname);
+
     ppInfo info;
     // Parse the path into parent directory and target entry
     
-    if (parsePath((char*)pathname,&info) != 0){
-        return NULL; 
+    memset(&info, 0, sizeof(ppInfo));
+
+    int result = parsePath(pathname, &info);
+
+    if(result != 0){
+        printf("Parse path failed\n");
+        return NULL;
     }
 
-    
     DE* dir;
     // check if the path is root directory
-    if(info.index != -1){
+    if(info.index > 0){
         // get the DE at the desired index inside parent directory
         dir = &info.parent[info.index];
     }
-    else {
+    else if (info.index == -2){
         // root directory
         dir = info.parent;
+    } else{
+        safeFree(info.parent);
+        printf("Directory invalid.\n");
     }
 
+    printf("directory name: %s\n", dir->name);
+    printf("directory index: %d\n", info.index);
+    printf("directory isDir: %d\n", dir->isDir);
+
     // check directory exists and is a valid directory
-    if(!dir || !dir->isDir){
+    if(!dir || dir->isDir != 1){
+        printf("Not a directory or null entry\n");
         safeFree(info.parent);
         return NULL;
     }
 
-    
     fdDir* dirp = malloc(sizeof(fdDir));
     if (!dirp) return NULL;
 
@@ -373,6 +403,31 @@ fdDir * fs_opendir (const char *pathname){
 
     int currentDE = 0;
 
+    for (int i =0; i < dir->mem.extentCount; i++){
+        int startBlock = dir->mem.extents[i].block;
+        int numBlocks = dir->mem.extents[i].count;
+
+        void *buffer = malloc(numBlocks * BLOCK_SIZE);
+
+        if(!buffer){
+            printf("Failed to allocate buffer for extent\n");
+            return NULL;
+        }
+
+        if(LBAread(buffer, numBlocks, startBlock) != numBlocks){
+            printf("LBAread failed for extent starting at %d\n", startBlock);
+            free(buffer);
+            return NULL;
+        }
+
+        int entries = (numBlocks * BLOCK_SIZE) / sizeof(DE);
+        memcpy(&handle->entries[currentDE], buffer, entries * sizeof(DE));
+        currentDE += entries;
+
+        free(buffer);
+    }
+
+/*
     // copies all the directory entires into entries array
     for (int i =0; i < dir->mem.extentCount; i++){
         int startBlock = dir->mem.extents[i].block;
@@ -390,24 +445,31 @@ fdDir * fs_opendir (const char *pathname){
             free(buffer);
         }
     }
-    
+*/   
     // Set metadata
     handle->totalEntries = currentDE;
     handle-> currentIndex = 0;
-
     dirp->d_reclen = sizeof(fdDir);
     dirp->dirEntryPosition = 0;
     dirp->di = NULL;
     dirp->handle = handle;
 
     safeFree(info.parent);
+
+    printf("Handle total entries: %d\n", handle->totalEntries);
+
     return dirp;
 
 }
 // read the next entry in directory
 struct fs_diriteminfo *fs_readdir(fdDir *dirp){
+
+    printf("Reading dir\n");
     // validate directory and handle
-    if (!dirp || !dirp->handle) return NULL;
+    if (!dirp || !dirp->handle){
+        printf("Invalid directory, fs_readdir\n");
+        return NULL;
+    } 
 
     // Cast to DirHandle for access
     DirHandle* handle = dirp->handle;
@@ -417,7 +479,7 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp){
     while(handle->currentIndex < handle->totalEntries){
         DE * entry = &handle->entries[handle->currentIndex++];
         if(entry->name[0] == '\0') continue; // skip empty entries
-
+        printf("Reading entry: %s\n", entry->name);
         struct fs_diriteminfo * info = malloc(sizeof(struct fs_diriteminfo));
         info->d_reclen = sizeof(struct fs_diriteminfo);
         info->fileType = entry->isDir ? FT_DIRECTORY : FT_REGFILE;

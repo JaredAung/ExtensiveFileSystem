@@ -75,7 +75,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 	//printf("blockSize: %d total blocks: %d Extent table start: %d extent table blocks: %d \n", vcb->blockSize,vcb->totalBlocks,vcb->extentTableStart,vcb->extentTableBlocks);
 	//printf("rootDir start: %d root dir blocks %d free block start %d create %ld mount %ld\n", vcb->rootDirStart, vcb->rootDirBlocks, vcb->freeBlockStart, vcb->createTime, vcb->lastMountTime);
 
-	setRootDir(root);//Sets a variable to hold the root while running
+	//setRootDir(root);//Sets a variable to hold the root while running
 	free(vcb); // free allocated memory
 	return 0;
 }
