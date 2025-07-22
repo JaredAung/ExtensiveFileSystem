@@ -20,16 +20,19 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "b_io.h"
+#include "dirLow.h"
 
 #define MAXFCBS 20
 #define B_CHUNK_SIZE 512
 
 typedef struct b_fcb
 	{
-	/** TODO add al the information you need in the file control block **/
-	char * buf;		//holds the open file buffer
+	char * buff;		//holds the open file buffer
 	int index;		//holds the current position in the buffer
 	int buflen;		//holds how many valid bytes are in the buffer
+	off_t filePosition; // current offset in file (could use uint64_t ?)
+	uint64_t fileSize;	// total size of file, updated from b_write
+	DE *fi;			// pointer to file's directory entry
 	} b_fcb;
 	
 b_fcb fcbArray[MAXFCBS];
@@ -42,7 +45,7 @@ void b_init ()
 	//init fcbArray to all free
 	for (int i = 0; i < MAXFCBS; i++)
 		{
-		fcbArray[i].buf = NULL; //indicates a free fcbArray
+		fcbArray[i].buff = NULL; //indicates a free fcbArray
 		}
 		
 	startup = 1;
@@ -67,15 +70,24 @@ b_io_fd b_getFCB ()
 b_io_fd b_open (char * filename, int flags)
 	{
 	b_io_fd returnFd;
-
-	//*** TODO ***:  Modify to save or set any information needed
-	//
-	//
 		
 	if (startup == 0) b_init();  //Initialize our system
 	
 	returnFd = b_getFCB();				// get our own file descriptor
 										// check for error - all used FCB's
+	if(returnFd < 0) return -1; //No available FCB
+
+	ppInfo info;
+	if(parsePath(filename, &info) != 0) return -1; 
+
+	DE *fileEntry = &info.parent->mem.extents[info.index];
+	if(fileEntry->isDir) return -1; 	// can't open a directory  
+
+	fcbArray[returnFd].buff = malloc(B_CHUNK_SIZE);
+	fcbArray[returnFd].index = 0;
+	fcbArray[returnFd].buflen = 0;
+	fcbArray[returnFd].filePosition = 0;
+	fcbArray[returnFd].fi = fileEntry;
 	
 	return (returnFd);						// all set
 	}
@@ -144,8 +156,79 @@ int b_read (b_io_fd fd, char * buffer, int count)
 		{
 		return (-1); 					//invalid file descriptor
 		}
+
+	if(fcbArray[fd].fi == NULL) return -1;
+
+	b_fcb *fcb = &fcbArray[fd];
+
+	// Check for end of file
+	if(fcb->filePosition >= fcb->fileSize){
+		return 0;
+	}
+
+	int bytesLeft = fcb->fileSize - fcb->filePosition;
+	int bytesToCopy = (count <bytesLeft) ? count : bytesLeft;
+	int totalCopied = 0;
+
+	// Copy remaining data in buffer
+	if(fcb->index < fcb->buflen){
+		int remaining = fcb->buflen - fcb->index;
+		int copySize = (bytesToCopy < remaining) ? bytesToCopy : remaining;
+
+		memcpy(buffer, fcb->buff + fcb->index, copySize);
+
+		fcb->index += copySize;
+		fcb->filePosition += copySize;
+		bytesToCopy -= copySize;
+		totalCopied += copySize;
+		buffer += copySize;
+	}
+
+	// Read full blocks directly into buffer
+	if(bytesToCopy >= B_CHUNK_SIZE){
+
+		int fullBlocks = bytesToCopy / B_CHUNK_SIZE;
+		uint64_t blockOffset = fcb->filePosition / B_CHUNK_SIZE;
+
+		uint64_t blocksRead = LBAread(buffer, fullBlocks, fcb->fi->mem.extents->block + blockOffset);
+		if(blocksRead != fullBlocks){
+			return totalCopied; // Partial read
+		}
+
+		int bytesRead = fullBlocks * B_CHUNK_SIZE;
+		fcb->filePosition += bytesRead;
+		bytesToCopy -= bytesRead;
+		totalCopied += bytesRead;
+		buffer += bytesRead;
+
+		fcb->index = 0;
+		fcb->buflen = 0;
+	}
+
+	// Load next block into buffer and copy remaining bytes
+	if(bytesToCopy > 0){
+		uint64_t blockOffset = fcb->filePosition / B_CHUNK_SIZE;
+		uint64_t result = LBAread(fcb->buff, 1, fcb->fi->mem.extents->block + blockOffset);
+
+		if(result != 1){
+			return totalCopied; // Error or Partial read
+		}
+
+		fcb->buflen = B_CHUNK_SIZE;
+		fcb->index = 0;
+
+		int offset = fcb->filePosition % B_CHUNK_SIZE;
+		int available = B_CHUNK_SIZE - offset;
+		int copySize = (bytesToCopy < available) ? bytesToCopy : available;
+
+		memcpy(buffer, fcb->buff + offset, copySize);
+
+		fcb->index = offset + copySize;
+		fcb->filePosition += copySize;
+		totalCopied += copySize;
+	}
 		
-	return (0);	//Change this
+	return totalCopied;
 	}
 	
 // Interface to Close the file	
