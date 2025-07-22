@@ -464,18 +464,14 @@ int fs_closedir(fdDir *dirp){
         return -1;
     }
 
-    // Free struct if allocated
-    if(dirp->di != NULL){
-        free(dirp->di);
-        dirp->di = NULL;
-    }
-
     // Free directory entry via handle
     if(dirp->handle != NULL){
         if(dirp->handle->entries != NULL){
             free(dirp->handle->entries);
+            dirp->handle->entries = NULL;
         }
         free(dirp->handle);
+        dirp->handle = NULL;
     }
 
     free(dirp);
