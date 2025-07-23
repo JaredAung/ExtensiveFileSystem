@@ -206,7 +206,7 @@ int parsePath(const char* pathname, ppInfo* info){
             return -1;
         }
 
-        if(parent[idx].isDir!='1'){
+        if(parent[idx].isDir!= 1){
             free(path);
             return -1;
         }
@@ -231,7 +231,7 @@ DE* loadDir(DE* dir){
         return NULL;//invalid input
     }
     
-    if(dir->isDir!= '1'){
+    if(dir->isDir!= 1){
         return NULL;//is not a directory
     }
 

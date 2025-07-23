@@ -112,5 +112,5 @@ void freePPI(ppInfo *ppi) {
 int entryIsDir(ppInfo *ppi) {
     if (!ppi || ppi->index < 0) return 0;
     printf("is directory = %d\n", ppi->parent[ppi->index].isDir);
-    return (ppi->parent[ppi->index].isDir == '1');
+    return (ppi->parent[ppi->index].isDir == 1);
 }
