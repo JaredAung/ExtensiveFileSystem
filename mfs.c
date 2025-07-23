@@ -561,3 +561,8 @@ int fs_closedir(fdDir *dirp){
 
     return 0;
 }
+
+char* mc(int size){
+    char* temp = malloc(size);
+    return temp;
+}
