@@ -223,7 +223,8 @@ int fs_setcwd(char *pathname){
     
     DE* entry = ppi->parent;
     //We need to make sure last value is a valid directory
-    if(entry[ppi->index].isDir==1){
+    printf("Entry[ppi->index].isDir: %d\n",entry[ppi->index].isDir);
+    if(entry[ppi->index].isDir!=1){
         printf("fs_setcwd: is not a valid path\n");
         freePPI(ppi);
         return -1;

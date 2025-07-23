@@ -190,6 +190,7 @@ int parsePath(const char* pathname, ppInfo* info){
     }
     while(1){
         int idx = findInDir(parent, token1);
+        printf("Idx: %d\n",idx);
 
         token2 = strtok_r(NULL,"/",&savePtr);
 
@@ -259,8 +260,10 @@ DE* loadDir(DE* dir){
  */
 int findInDir(DE* parent,char* token1){
     int numEntries = parent[0].size/sizeof(DE);
+    printf("Token1 %s", token1);
 
     for(int i = 0;i<numEntries;i++){
+        //printf("Parent i: %s\n",parent[i].name);
         if(strcmp(parent[i].name,token1)==0){
             return i;
         }
