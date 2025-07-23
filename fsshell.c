@@ -47,7 +47,7 @@
 #define CMDCP2L_ON	0
 #define CMDCP2FS_ON	0
 #define CMDCD_ON	1
-#define CMDPWD_ON	0
+#define CMDPWD_ON	1
 #define CMDTOUCH_ON	1
 #define CMDCAT_ON	0
 
