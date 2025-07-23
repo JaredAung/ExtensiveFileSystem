@@ -32,6 +32,7 @@ typedef struct b_fcb
 	int buflen;		//holds how many valid bytes are in the buffer
 	off_t filePosition; // current offset in file (could use uint64_t ?)
 	uint64_t fileSize;	// total size of file, updated from b_write
+	int accessMode;		// for O_RDONLY, O_WRONLY, O_RDWR
 	DE *fi;			// pointer to file's directory entry
 	} b_fcb;
 	
@@ -68,17 +69,79 @@ b_io_fd b_getFCB ()
 // Modification of interface for this assignment, flags match the Linux flags for open
 // O_RDONLY, O_WRONLY, or O_RDWR
 b_io_fd b_open (char * filename, int flags){
-    b_io_fd returnFd;
-		
+    	
 	if (startup == 0) b_init();  //Initialize our system
+	printf("b_open system initialized\n");
 	
-	returnFd = b_getFCB();				// get our own file descriptor
+	int access = flags & O_ACCMODE;
+	if(access != O_RDONLY && access != O_WRONLY && access != O_RDWR){
+		printf("Access denied\n");
+		return -1;
+	}
+
+	b_io_fd returnFd = b_getFCB();				// get our own file descriptor
 										// check for error - all used FCB's
-	if(returnFd < 0) return -1; //No available FCB
-
+	if(returnFd < 0) {
+		printf("No available FCB\n");
+		return -1; //No available FCB
+	}
 	ppInfo info;
-	if(parsePath(filename, &info) != 0) return -1; 
+	int pathResult = parsePath(filename, &info);
 
+	
+	printf("moving on\n");
+	DE *fileEntry = NULL;
+
+	if(pathResult != 0 || info.index < 0){
+		printf("inside if\n");
+		if(!(flags & O_CREAT)){
+			printf("File does not exist and not creating\n");
+			return -1; 
+		}
+
+		printf("creating new file\n");
+		DE *newFile = createFile(info.lastElementName, info.parent); 
+		if(!newFile){
+			printf("New file creation failed\n");
+			return -1;
+		}
+
+		fileEntry = newFile;
+	} 
+	else
+	{	
+		printf("inside else\n");
+		//File exists
+		fileEntry = &info.parent->mem.extents[info.index];
+		if(fileEntry->isDir){
+			printf("Cannot open a dir\n");
+			return -1;
+		} 
+	}
+
+	if((flags & O_TRUNC) && (access == O_WRONLY || access == O_RDWR)){
+		//freeExtents(fileEntry);
+		fileEntry->size = 0;
+		fileEntry->mem.extentCount = 0;
+	}
+
+	b_fcb *fcb = &fcbArray[returnFd];
+	memset(fcb, 0, sizeof(b_fcb));
+
+	fcb->buff = malloc(B_CHUNK_SIZE);
+	fcb->index = 0;
+	fcb->buflen = 0;
+	fcb->accessMode = access;
+	fcb->fi = fileEntry;
+
+	//Set file position to end of file
+	if(flags & O_APPEND){
+		fcb->filePosition = fileEntry->size;
+	} else{
+		fcb->filePosition = 0;
+	}
+
+/*
 	DE *fileEntry = &info.parent->mem.extents[info.index];
 	if(fileEntry->isDir) return -1; 	// can't open a directory  
 
@@ -87,7 +150,7 @@ b_io_fd b_open (char * filename, int flags){
 	fcbArray[returnFd].buflen = 0;
 	fcbArray[returnFd].filePosition = 0;
 	fcbArray[returnFd].fi = fileEntry;
-	
+*/	
 	return (returnFd);
 }
 

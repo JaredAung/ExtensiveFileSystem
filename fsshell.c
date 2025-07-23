@@ -48,7 +48,7 @@
 #define CMDCP2FS_ON	0
 #define CMDCD_ON	1
 #define CMDPWD_ON	0
-#define CMDTOUCH_ON	0
+#define CMDTOUCH_ON	1
 #define CMDCAT_ON	0
 
 //DE* root;//global to store "." entry of root directory
@@ -232,8 +232,7 @@ int cmd_ls (int argcnt, char *argvec[])
 			}		
 		}
 	else   // no pathname/filename specified - use cwd
-		{
-		printf("no pathname/filename specified - use cwd\n");	
+		{	
 		char * path = fs_getcwd(cwd, DIRMAX_LEN);	//get current working directory
 		fdDir * dirp;
 		dirp = fs_opendir (path);
@@ -265,7 +264,6 @@ int cmd_touch (int argcnt, char *argvec[])
                         printf("Usage: touch srcfile\n");
                         return (-1);
                 }
-
 
         testfs_src_fd = b_open(src, O_WRONLY | O_CREAT);
         if (testfs_src_fd < 0)

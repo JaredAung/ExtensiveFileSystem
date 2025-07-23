@@ -45,6 +45,8 @@ typedef struct ppInfo{
 //the provided path
 DE* createDir(int numEntries,DE* parent);
 
+//creates a file with given name
+DE *createFile(const char *name, DE *parent);
 
 //Takes a path and verifies it is a valid path in the fs
 int parsePath(const char* path,ppInfo* info);
@@ -55,6 +57,8 @@ DE* loadDir(DE* dir);
 
 DE *getRootDir(void);
 DE *getCwd(void);
+
+int findFreeDE(DE *dir);
 
 void setRootDir(DE *root);
 void setCwdDir (DE *cwd);
