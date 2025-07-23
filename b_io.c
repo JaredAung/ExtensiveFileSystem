@@ -67,9 +67,8 @@ b_io_fd b_getFCB ()
 // Interface to open a buffered file
 // Modification of interface for this assignment, flags match the Linux flags for open
 // O_RDONLY, O_WRONLY, or O_RDWR
-b_io_fd b_open (char * filename, int flags)
-	{
-	b_io_fd returnFd;
+b_io_fd b_open (char * filename, int flags){
+    b_io_fd returnFd;
 		
 	if (startup == 0) b_init();  //Initialize our system
 	
@@ -89,8 +88,8 @@ b_io_fd b_open (char * filename, int flags)
 	fcbArray[returnFd].filePosition = 0;
 	fcbArray[returnFd].fi = fileEntry;
 	
-	return (returnFd);						// all set
-	}
+	return (returnFd);
+}
 
 
 // Interface to seek function	
@@ -103,9 +102,40 @@ int b_seek (b_io_fd fd, off_t offset, int whence)
 		{
 		return (-1); 					//invalid file descriptor
 		}
+
+	b_fcb *fcb = &fcbArray[fd];
+	if(fcb->buff ==NULL || fcb->fi == NULL){
+		return -1;
+	}	
+
+	off_t newPosition;
+	// Calculate file position based on whence
+	switch(whence) {
+		case SEEK_SET:
+			newPosition = offset;
+			break;
+		case SEEK_CUR:
+			newPosition = fcb->filePosition +offset;
+			break;
+		case SEEK_END:
+			newPosition = fcb->fileSize + offset;
+			break;
+		default:
+			return -1;
+
+	}	
+
+	// check bounds to ensure newPosition is valid
+	if (newPosition < 0 || newPosition > fcb->fileSize){
+		return -1;
+	}
+
+	// set new position and invalidate buffer
+	fcb->filePosition = newPosition;
+	fcb->index = B_CHUNK_SIZE;
+	fcb->buflen = 0;
 		
-		
-	return (0); //Change this
+	return newPosition;
 	}
 
 
@@ -120,9 +150,38 @@ int b_write (b_io_fd fd, char * buffer, int count)
 		{
 		return (-1); 					//invalid file descriptor
 		}
+	b_fcb *fcb = &fcbArray[fd];
+	if(fcb->buff ==NULL || fcb->fi == NULL){
+		return -1;
+	}	
+	
+	int written = 0;
+
+	while (written < count) {
+		int spaceRemain = B_CHUNK_SIZE - fcb->index;
+		int bytesToBuffer = (count - written < spaceRemain) ? (count -written) : spaceRemain;
+
+		// Copy data from input buffer to internal buffer
+		memcpy(fcb->buff + fcb->index, buffer + written, bytesToBuffer);
+		fcb->index += bytesToBuffer;
+		written += bytesToBuffer;
+
+		// when the buffer is filled, write to disk
+		if(fcb->index == B_CHUNK_SIZE) {
+			uint64_t blockOffset = fcb->filePosition / B_CHUNK_SIZE;
+			uint64_t writeResult = LBAwrite(fcb->buff,1, fcb->fi->mem.extents->block + blockOffset);
+
+			if(writeResult != 1) return -1;
+
+			fcb->filePosition += B_CHUNK_SIZE;
+			fcb->index = 0;
+		}
+	}
+	if(fcb->filePosition + fcb->index > fcb->fileSize){
+			fcb->fileSize = fcb->filePosition + fcb->index;
+		}
 		
-		
-	return (0); //Change this
+	return written; //Change this
 	}
 
 
@@ -221,6 +280,7 @@ int b_read (b_io_fd fd, char * buffer, int count)
 		int available = B_CHUNK_SIZE - offset;
 		int copySize = (bytesToCopy < available) ? bytesToCopy : available;
 
+		
 		memcpy(buffer, fcb->buff + offset, copySize);
 
 		fcb->index = offset + copySize;
@@ -234,5 +294,39 @@ int b_read (b_io_fd fd, char * buffer, int count)
 // Interface to Close the file	
 int b_close (b_io_fd fd)
 	{
+		if(startup == 0) return 0;
+
+		if(fd < 0 || fd >= MAXFCBS) return -1;
+
+		b_fcb *fcb = &fcbArray[fd];
+
+		if(fcb->buff == NULL || fcb->fi == NULL) {
+			return -1;
+		}
+		// flush write buffer if there are unwritten data
+		if(fcb->index > 0){
+			uint64_t blockOffset = fcb->filePosition / B_CHUNK_SIZE;
+			uint64_t writeResult = LBAwrite(fcb->buff,1,fcb->fi->mem.extents->block + blockOffset);
+			if (writeResult != 1) return -1;
+
+			fcb->filePosition += fcb->index;
+
+			if (fcb->filePosition > fcb->fileSize){
+				fcb->fileSize = fcb->filePosition;
+			}
+		}
+
+		// free buffer
+		free(fcb->buff);
+		fcb->buff = NULL;
+
+		// Clear FCB fields
+		fcb->index = 0;
+		fcb->buflen = 0;
+		fcb->filePosition = 0;
+		fcb->fileSize = 0;
+		fcb->fi = NULL;
+
+		return 0;
 
 	}

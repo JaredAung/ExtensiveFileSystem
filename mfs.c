@@ -370,6 +370,7 @@ fdDir * fs_opendir (const char *pathname){
     } else{
         safeFree(info.parent);
         printf("Directory invalid.\n");
+        return NULL;
     }
 
     printf("directory name: %s\n", dir->name);
@@ -397,14 +398,10 @@ fdDir * fs_opendir (const char *pathname){
         return NULL;
     }
 
-    // Count the total DEs in all extents
-    int totalDEs = 0;
-    for (int i = 0; i < dir->mem.extentCount;i++){
-        totalDEs += dir->mem.extents[i].count * (BLOCK_SIZE/sizeof(DE));
-    }
-
-    // Allocate space to store all the DEs
-    handle->entries = malloc(totalDEs * sizeof(DE));
+    // Compute total size and number of DEs
+    int totalBytes = dir->size;
+    int totalDEs = totalBytes / sizeof(DE);
+    handle->entries = malloc(totalBytes);
     if (!handle->entries){
         printf("could not malloc handle->entries\n");
         free(handle);
@@ -412,68 +409,55 @@ fdDir * fs_opendir (const char *pathname){
         return NULL;
     }
 
-    int currentDE = 0;
-
-    for (int i =0; i < dir->mem.extentCount; i++){
+    int currentOffset = 0;
+    // loop through each extent and load blocks into memory
+    for (int i = 0; i < dir->mem.extentCount; i++){
         int startBlock = dir->mem.extents[i].block;
         int numBlocks = dir->mem.extents[i].count;
 
         void *buffer = malloc(numBlocks * BLOCK_SIZE);
-
-        if(!buffer){
-            printf("Failed to allocate buffer for extent\n");
+        if (!buffer){
+            printf("Failed to allocate buffer\n");
+            free(handle->entries);
+            free(handle);
+            free(dirp);
             return NULL;
         }
 
-        if(LBAread(buffer, numBlocks, startBlock) != numBlocks){
-            printf("LBAread failed for extent starting at %d\n", startBlock);
+        if (LBAread(buffer, numBlocks, startBlock) != numBlocks){
+            printf("LBAread failed\n");
             free(buffer);
+            free(handle->entries);
+            free(handle);
+            free(dirp);
             return NULL;
         }
 
-        int entries = (numBlocks * BLOCK_SIZE) / sizeof(DE);
-        memcpy(&handle->entries[currentDE], buffer, entries * sizeof(DE));
-        currentDE += entries;
+        // Copy only the required bytes into entries array
+        int copySize ;
+        if (totalBytes - currentOffset > numBlocks * BLOCK_SIZE) {
+            copySize = numBlocks * BLOCK_SIZE;
+        } 
+        else {
+            copySize = totalBytes - currentOffset;
+        }
 
-        printf("before free(buffer) inside while loop\n");
+        memcpy((char *)handle->entries + currentOffset, buffer, copySize);
+        currentOffset += copySize;
+
         free(buffer);
     }
 
-    printf("after while loop\n");
-
-/*
-    // copies all the directory entires into entries array
-    for (int i =0; i < dir->mem.extentCount; i++){
-        int startBlock = dir->mem.extents[i].block;
-        int numBlocks = dir->mem.extents[i].count;
-
-        for (int j = 0; j < numBlocks; j++){
-            void *buffer = malloc(BLOCK_SIZE);
-            if(!buffer) continue;
-
-            LBAread(buffer,1,startBlock + j);
-            int entriesInBlock = BLOCK_SIZE / sizeof(DE);
-            memcpy(&handle->entries[currentDE], buffer, entriesInBlock * sizeof(DE));
-            currentDE += entriesInBlock;
-
-            free(buffer);
-        }
-    }
-*/   
-    // Set metadata
-    handle->totalEntries = currentDE;
-    handle-> currentIndex = 0;
+    handle->totalEntries = totalBytes / sizeof(DE);
+    handle->currentIndex = 0;
     dirp->d_reclen = sizeof(fdDir);
     dirp->dirEntryPosition = 0;
     dirp->di = NULL;
     dirp->handle = handle;
 
     safeFree(info.parent);
-
     printf("Handle total entries: %d\n", handle->totalEntries);
-
     return dirp;
-
 }
 // read the next entry in directory
 struct fs_diriteminfo *fs_readdir(fdDir *dirp){
@@ -485,6 +469,11 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp){
         return NULL;
     } 
 
+    if (dirp->di){
+        free(dirp->di);
+        dirp->di =NULL;
+    }
+
     // Cast to DirHandle for access
     DirHandle* handle = dirp->handle;
 
@@ -495,10 +484,11 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp){
         DE *entry = &handle->entries[handle->currentIndex++];
         if (entry->name[0] == '\0')
             continue; // skip empty entries
-
-        printf("Reading entry: %s\n", entry->name);
+        
+        printf("Reading entry: %s : %d\n", entry->name,entry->isDir);
 
         struct fs_diriteminfo *info = malloc(sizeof(struct fs_diriteminfo));
+        if(!info) return NULL;
 
         info->d_reclen = sizeof(struct fs_diriteminfo);
         info->fileType = entry->isDir ? FT_DIRECTORY : FT_REGFILE;
@@ -506,8 +496,8 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp){
         strncpy(info->d_name, entry->name, 255);
 
         info->d_name[255] = '\0';
-
-        return info;
+        dirp->di = info;
+        return dirp->di;
     }
     return NULL;
 }
@@ -546,7 +536,7 @@ int fs_closedir(fdDir *dirp){
     if(dirp == NULL){
         return -1;
     }
-
+    memset(dirp,0,sizeof(fdDir));
     // Free directory entry via handle
     if(dirp->handle != NULL){
         if(dirp->handle->entries != NULL){
@@ -555,6 +545,11 @@ int fs_closedir(fdDir *dirp){
         }
         free(dirp->handle);
         dirp->handle = NULL;
+    }
+
+    if(dirp->di != NULL){
+        free(dirp->di);
+        dirp->di = NULL;
     }
 
     free(dirp);
