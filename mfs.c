@@ -47,7 +47,7 @@ int fs_mkdir(const char *pathname, mode_t mode)
         return -2;
     }
 
-    DE *newDir = createDir(50, ppi.parent);
+    DE *newDir = createDir(32, ppi.parent);
     printf("createDir completed\n");
 
     int index = findFreeDE(ppi.parent);

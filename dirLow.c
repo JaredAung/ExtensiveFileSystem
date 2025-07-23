@@ -81,8 +81,8 @@ DE* createDir(int numEntries,DE* parent){
 
     newDir[0].size =actualEntries* sizeof(DE); //
 
-    newDir[0].mem.extents[0] =*dirMem; //assign directory memory to extent table to '.' entry
-    newDir[0].mem.extentCount=1;
+    newDir[0].mem.extents[0] = *dirMem; //assign directory memory to extent table to '.' entry
+    newDir[0].mem.extentCount = 1;
 
     newDir[0].isDir = 1;  //Sentinel value of 1 is True
 
