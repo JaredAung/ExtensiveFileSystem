@@ -54,7 +54,7 @@ DE* createDir(int numEntries,DE* parent){
     int memNeeded = numEntries*sizeof(DE);
     int blocksNeeded = (memNeeded+BLOCK_SIZE-1)/BLOCK_SIZE;
     memNeeded = blocksNeeded*BLOCK_SIZE;    //Accounts for allocating memory in blocks
-    //printf("blocksNeeded %d\n", blocksNeeded);
+    printf("blocksNeeded %d\n", memNeeded);
 
     DE* newDir = malloc(memNeeded);//initialize directory array
 
@@ -94,7 +94,7 @@ DE* createDir(int numEntries,DE* parent){
         parent = newDir;
     }
 
-    int extentFileCount = newDir[1].mem.extentCount;//size of extent table
+    int extentFileCount = newDir[0].mem.extentCount;//size of extent table
 
     strcpy(newDir[1].name,"..");
 
@@ -179,7 +179,7 @@ int parsePath(const char* pathname, ppInfo* info){
         if(path[0]=='/'){//passed the root directory
             info->parent = parent;
             info->index = -2;
-            info->lastElementName = NULL;
+            info->lastElementName[0] = '\0';
             free(path);
             return 0;
         }
@@ -196,7 +196,7 @@ int parsePath(const char* pathname, ppInfo* info){
         if(token2 ==NULL){
             info->parent = parent;
             info->index = idx;
-            info->lastElementName = token1;
+            strcpy(info->lastElementName, token1);
             free(path);
             return 0;
         }

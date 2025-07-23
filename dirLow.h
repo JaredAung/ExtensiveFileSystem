@@ -38,7 +38,7 @@ typedef struct DE{
 typedef struct ppInfo{
     DE* parent;
     int index;
-    char* lastElementName;
+    char lastElementName[MAX_NAME_LENGTH];
 }ppInfo;
 
 //creates a directory with a given number of entries at 

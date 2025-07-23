@@ -51,7 +51,11 @@ int fs_mkdir(const char *pathname, mode_t mode)
     printf("createDir completed\n");
 
     int index = findFreeDE(ppi.parent);
-    printf("findFreeDE completed\n");
+    if(index<0){
+        printf("No valid index received %d",index);
+        return -1;
+    }
+    
 
     ppi.parent[index].size = newDir[0].size;
     ppi.parent[index].isDir = newDir[0].isDir;
@@ -60,7 +64,7 @@ int fs_mkdir(const char *pathname, mode_t mode)
     ppi.parent[index].modificationTime = newDir[0].creationTime;
     ppi.parent[index].mem = newDir[0].mem;
     
-    strncpy(ppi.parent[index].name, ppi.lastElementName, MAX_NAME_LENGTH);
+    strncpy(ppi.parent[index].name, ppi.lastElementName, strlen(ppi.lastElementName));
 
     if (writeDir(ppi.parent) != 0)
     {
@@ -80,7 +84,7 @@ int findFreeDE(DE* parent){
     if(parent == NULL){
         return -1;
     }
-    if(parent->isDir!='1'){
+    if(parent->isDir!=1){
         return -1;
     }
 
@@ -278,7 +282,7 @@ int fs_isFile(char * filename){
 // This Function returns if the directory is file or directory.
 int fs_isDir(char * filename){
     // We need to allocate memory for return value of parsePath
-    printf("Checking if is directory\n");
+    //printf("Checking if is directory\n");
     ppInfo* ppi = malloc(sizeof(ppInfo));
     if (ppi == NULL) {
         return -1;
@@ -344,7 +348,7 @@ void safeFree(DE* dir){
 // handle that can be used to iterate through the entries
 fdDir * fs_opendir (const char *pathname){
 
-    printf("opening directory: %s\n", pathname);
+    //printf("opening directory: %s\n", pathname);
 
     ppInfo info;
     // Parse the path into parent directory and target entry
@@ -373,9 +377,9 @@ fdDir * fs_opendir (const char *pathname){
         return NULL;
     }
 
-    printf("directory name: %s\n", dir->name);
-    printf("directory index: %d\n", info.index);
-    printf("directory isDir: %d\n", dir->isDir);
+    //printf("directory name: %s\n", dir->name);
+    //printf("directory index: %d\n", info.index);
+    //printf("directory isDir: %d\n", dir->isDir);
 
     // check directory exists and is a valid directory
     if(!dir || dir->isDir != 1){
@@ -456,13 +460,13 @@ fdDir * fs_opendir (const char *pathname){
     dirp->handle = handle;
 
     safeFree(info.parent);
-    printf("Handle total entries: %d\n", handle->totalEntries);
+    //printf("Handle total entries: %d\n", handle->totalEntries);
     return dirp;
 }
 // read the next entry in directory
 struct fs_diriteminfo *fs_readdir(fdDir *dirp){
 
-    printf("Reading dir\n");
+    //printf("Reading dir\n");
     // validate directory and handle
     if (!dirp || !dirp->handle){
         printf("Invalid directory, fs_readdir\n");
@@ -485,7 +489,7 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp){
         if (entry->name[0] == '\0')
             continue; // skip empty entries
         
-        printf("Reading entry: %s : %d\n", entry->name,entry->isDir);
+        //printf("Reading entry: %s : %d\n", entry->name,entry->isDir);
 
         struct fs_diriteminfo *info = malloc(sizeof(struct fs_diriteminfo));
         if(!info) return NULL;
