@@ -112,7 +112,8 @@ b_io_fd b_open (char * filename, int flags){
 	{	
 		printf("inside else\n");
 		//File exists
-		fileEntry = &info.parent->mem.extents[info.index];
+		
+		fileEntry = &(info.parent[info.index]);
 		if(fileEntry->isDir){
 			printf("Cannot open a dir\n");
 			return -1;
