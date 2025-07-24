@@ -30,6 +30,7 @@ typedef struct DE{
     time_t modificationTime;    // Directory metadata
     time_t lastAccessTime;
     uint32_t size;// size in bytes of directory
+    uint32_t entryCount; // number of entries
     char name[MAX_NAME_LENGTH];//directory name
     int isDir;//signal value for if directory entry is a directory
 

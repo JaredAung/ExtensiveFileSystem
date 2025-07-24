@@ -71,6 +71,7 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 		}
 
 		setRootDir(root);
+		printf("Root ptr: %p\n", getRootDir());
 		free(vcb);
 		return 0;
 	}
