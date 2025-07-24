@@ -40,16 +40,16 @@
 
 /****   SET THESE TO 1 WHEN READY TO TEST THAT COMMAND ****/
 #define CMDLS_ON	1
-#define CMDCP_ON	0
-#define CMDMV_ON	0
+#define CMDCP_ON	1
+#define CMDMV_ON	1
 #define CMDMD_ON	1
 #define CMDRM_ON	0
-#define CMDCP2L_ON	0
-#define CMDCP2FS_ON	0
+#define CMDCP2L_ON	1
+#define CMDCP2FS_ON	1
 #define CMDCD_ON	1
 #define CMDPWD_ON	1
 #define CMDTOUCH_ON	1
-#define CMDCAT_ON	0
+#define CMDCAT_ON	1
 
 //DE* root;//global to store "." entry of root directory
 
@@ -373,8 +373,54 @@ int cmd_cp (int argcnt, char *argvec[])
 int cmd_mv (int argcnt, char *argvec[])
 	{
 #if (CMDMV_ON == 1)				
-	return -99;
+	
 	// **** TODO ****  For you to implement	
+	if(argcnt!=3){
+		printf("incorrect argument count\n");
+		return -1;
+	}
+	char* src = argvec[1];
+	char* dest = argvec[2];
+
+	ppInfo* srcInfo = malloc(sizeof(ppInfo));
+	ppInfo* destInfo = malloc(sizeof(ppInfo));
+
+	if(parsePath(src,srcInfo)!=0){
+		printf("Invalid src Path\n");
+		return -1;
+	};
+
+	if(srcInfo->parent[srcInfo->index].isDir!=0){
+		printf("Not a file cannot move\n");
+		return -1;
+	}
+
+	if(parsePath(dest, destInfo)!=0){
+		printf("Invalid dest path\n");
+		return -1;
+	};
+
+	if(destInfo->parent[destInfo->index].isDir!=1){
+		printf("Not a directory cannot move file here\n");
+		return -1;
+	}
+
+	int destEntries = destInfo->parent->size/BLOCK_SIZE;
+
+	for(int i = 0; i<destEntries;i++){
+		if(destInfo->parent[i].name[0]=='\0'){//Check for empty directory
+			memcpy(&(destInfo->parent[i]),&(srcInfo->parent[srcInfo->index]),sizeof(DE));//Copy the directory entry from source to dest
+			srcInfo->parent[srcInfo->index].name[0] = '\0';	//Update empty entry sentinel values
+			srcInfo->parent[srcInfo->index].isDir = 0;
+			break;
+		}
+	}
+
+	free(srcInfo);
+	free(destInfo);
+
+
+
 #endif
 	return 0;
 	}
