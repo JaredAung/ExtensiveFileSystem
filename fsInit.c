@@ -41,6 +41,41 @@ int initFileSystem(uint64_t numberOfBlocks, uint64_t blockSize)
 		return -1;
 	}
 
+	int result = LBAread(vcb, 1, 0);
+	if(result != 1){
+		printf("could not LBAread vcb\n");
+		return -1;
+	}
+
+	if(strcmp(vcb->signature, FS_SIGNATURE) == 0){
+		printf("System already initialized\n");
+		DE *root = malloc(vcb->rootDirBlocks * blockSize);
+
+		if(!root){
+			printf("Failed to allocate root\n");
+			free(vcb);
+			return -1;
+		}
+
+		printf("Reading root: start=%d, blocks=%d\n", vcb->rootDirStart, vcb->rootDirBlocks);
+
+		int res = LBAread(root, vcb->rootDirBlocks, vcb->rootDirStart);
+
+		printf("LBA returned: %d\n", res);
+
+		if(res != vcb->rootDirBlocks){
+			printf("Failed to read root from disk\n");
+			free(root);
+			free(vcb);
+			return -1;
+		}
+
+		setRootDir(root);
+		printf("Root ptr: %p\n", getRootDir());
+		free(vcb);
+		return 0;
+	}
+
 	if (initFreeSpace(numberOfBlocks, BLOCK_SIZE) != 0)
 	{
 		printf("Error allocating free space\n");

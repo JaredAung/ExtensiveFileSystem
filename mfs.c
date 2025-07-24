@@ -47,7 +47,7 @@ int fs_mkdir(const char *pathname, mode_t mode)
         return -2;
     }
 
-    DE *newDir = createDir(32, ppi.parent);
+    DE *newDir = createDir(50, ppi.parent);
     printf("createDir completed\n");
 
     int index = findFreeDE(ppi.parent);
@@ -231,6 +231,12 @@ int fs_setcwd(char *pathname){
     }
     //We need to load the directory to memory
     DE* cwd = loadDir(&(entry[ppi->index]));
+
+    if(!cwd){
+        printf("setcwd loadDir() failed\n");
+        freePPI(ppi);
+        return -1;
+    }
     //We need to set current directory
     freePPI(ppi);
     setCwdDir(cwd);
@@ -481,6 +487,8 @@ struct fs_diriteminfo *fs_readdir(fdDir *dirp){
 
     // Cast to DirHandle for access
     DirHandle* handle = dirp->handle;
+
+    printf("cwd size = %d\n", handle->totalEntries);
 
     // iterate through all the DEs until a valid entry is found or end is reacted
     // for valid entry, fill the details in diriteminfo structure

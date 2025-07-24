@@ -58,8 +58,8 @@ DE *createDir(int numEntries, DE *parent)
 {
     int memNeeded = numEntries * sizeof(DE);
     int blocksNeeded = (memNeeded + BLOCK_SIZE - 1) / BLOCK_SIZE;
-    memNeeded = blocksNeeded * BLOCK_SIZE; // Accounts for allocating memory in blocks
-    printf("blocksNeeded %d\n", memNeeded);
+    //memNeeded = blocksNeeded; // Accounts for allocating memory in blocks
+    printf("blocksNeeded %d\n", blocksNeeded);
 
     DE *newDir = malloc(memNeeded); // initialize directory array
 
@@ -96,6 +96,7 @@ DE *createDir(int numEntries, DE *parent)
     newDir[0].creationTime = initTime;
     newDir[0].modificationTime = initTime;
     newDir[0].lastAccessTime = initTime;
+    newDir[0].entryCount = actualEntries;
 
     if (parent == NULL)
     {
@@ -263,16 +264,26 @@ DE *loadDir(DE *dir)
         return NULL; // is not a directory
     }
 
+    printf("dir->size: %d\n", dir->size);
+
     DE *tempDir = malloc(dir->size);
+    if(tempDir == NULL){
+        printf("Malloc failed in loadDir\n");
+        return NULL;
+    }
 
     int extInDir = dir->mem.extentCount;
-    int index = 0;
+    int byteOffset = 0;
 
     for (int i = 0; i < extInDir; i++)
     {
         int loc = dir->mem.extents[i].block;
         int blocks = dir->mem.extents[i].count;
-        LBAread(&(tempDir[index]), blocks, loc);
+        int bytesToRead = blocks * BLOCK_SIZE;
+
+        void *target = (void *)((char *)tempDir + byteOffset);
+        LBAread(target, blocks, loc);
+        byteOffset += bytesToRead;
     }
 
     return tempDir;
@@ -285,12 +296,13 @@ DE *loadDir(DE *dir)
  */
 int findInDir(DE *parent, char *token1)
 {
-    int numEntries = parent[0].size / sizeof(DE);
+    int numEntries = parent[0].entryCount;
     printf("Token1 %s", token1);
 
     for (int i = 0; i < numEntries; i++)
     {
-        // printf("Parent i: %s\n",parent[i].name);
+        if(parent[i].name[0] == '\0') continue;
+
         if (strcmp(parent[i].name, token1) == 0)
         {
             return i;
