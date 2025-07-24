@@ -47,7 +47,7 @@ int fs_mkdir(const char *pathname, mode_t mode)
         return -2;
     }
 
-    DE *newDir = createDir(50, ppi.parent);
+    DE *newDir = createDir(32, ppi.parent);
     printf("createDir completed\n");
 
     int index = findFreeDE(ppi.parent);
@@ -82,9 +82,11 @@ int fs_mkdir(const char *pathname, mode_t mode)
  */
 int findFreeDE(DE* parent){
     if(parent == NULL){
+        printf("Parent is NULL\n");
         return -1;
     }
     if(parent->isDir!=1){
+        printf("Parent is not a directory\n");
         return -1;
     }
 
@@ -94,6 +96,7 @@ int findFreeDE(DE* parent){
     int index;
     for(index = 0; index<dirEntries;index++){
         if(parent[index].name[0]=='\0'){
+            printf("Index: %d\n",index);
             return index;
         }
     }

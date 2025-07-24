@@ -400,7 +400,7 @@ int cmd_mv (int argcnt, char *argvec[])
 		return -1;
 	};
 
-	if(destInfo->parent[destInfo->index].isDir!=1){
+	if(destInfo->parent->isDir!=1){
 		printf("Not a directory cannot move file here\n");
 		return -1;
 	}
