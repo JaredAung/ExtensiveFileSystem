@@ -326,6 +326,77 @@ int fs_isDir(char * filename){
     return retVal;
 }
 
+// helper: return 1 if this loaded directory has only "." and ".."
+static int isDirEmpty(DE *entries) {
+    int total = entries[0].size / sizeof(DE);
+    for (int i = 2; i < total; i++) {
+        if (entries[i].name[0] != '\0') {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+int fs_rmdir(const char *pathname) {
+    // 1) parsePath
+    ppInfo *ppi = malloc(sizeof *ppi);
+    if (!ppi) return -1;
+    char *pathCpy = strdup(pathname);
+    if (!pathCpy) { free(ppi); return -1; }
+
+    int ret = parsePath(pathCpy, ppi);
+    free(pathCpy);
+    if (ppi->index < 0 || ret < 0) {
+        freePPI(ppi);
+        return -1;
+    }
+
+    // 2) must be a directory
+    if (!entryIsDir(ppi)) {
+        freePPI(ppi);
+        return -1;
+    }
+
+    DE *parent = ppi->parent;
+    int idx   = ppi->index;
+
+    // 3) forbid removing root or cwd
+    if (parent == getRootDir() && idx == 0) {
+        freePPI(ppi);
+        return -1;
+    }
+    if (&parent[idx] == getCwd()) {
+        freePPI(ppi);
+        return -1;
+    }
+
+    // 4) load its contents and check empty
+    DE *child = loadDir(&parent[idx]);
+    if (!child) {
+        freePPI(ppi);
+        return -1;
+    }
+    if (!isDirEmpty(child)) {
+        safeFree(child);
+        freePPI(ppi);
+        return -1;
+    }
+    safeFree(child);
+
+    // 5) free its data blocks (extents)
+    freeBlocks(&parent[idx].mem);
+
+    // 6) remove the entry from parent
+    memset(&parent[idx], 0, sizeof(DE));
+    parent[0].modificationTime = time(NULL);
+
+    // 7) write updated parent directory back to disk
+    writeDir(parent);
+
+    freePPI(ppi);
+    return 0;
+}
+
 /*
 int entryIsDir(ppInfo *ppi){
 
