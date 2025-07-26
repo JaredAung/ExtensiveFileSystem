@@ -61,10 +61,12 @@ DE *createDir(int numEntries, DE *parent)
     //memNeeded = blocksNeeded; // Accounts for allocating memory in blocks
     printf("blocksNeeded %d\n", blocksNeeded);
 
-    DE *newDir = malloc(memNeeded); // initialize directory array
-
     int actualEntries = memNeeded / sizeof(DE); // calculate the number of entries that fit in
                                                 // allocated memory
+
+    DE *newDir = calloc(actualEntries,sizeof(DE)); // initialize directory array
+
+    
 
     for (int i = 2; i < actualEntries; i++)
     { // Mark unused entries
@@ -74,6 +76,7 @@ DE *createDir(int numEntries, DE *parent)
 
     Extent *dirMem = allocateFreeBlocks(blocksNeeded, &blocksAllocated); // get memory for directory
 
+    printf("Dir block:%d, Dir count: %d,Dir used:%d\n",dirMem->block,dirMem->count,dirMem->used);
     // printf("\nExtent count: %d\n", dirMem->count);
 
     if (dirMem == NULL)
@@ -86,9 +89,12 @@ DE *createDir(int numEntries, DE *parent)
 
     strcpy(newDir[0].name, ".");
 
-    newDir[0].size = actualEntries * sizeof(DE); //
+    newDir[0].size = blocksNeeded*BLOCK_SIZE; //
 
-    newDir[0].mem.extents[0] = *dirMem; // assign directory memory to extent table to '.' entry
+    newDir[0].mem.extents[0].block = dirMem->block; // assign directory memory to extent table to '.' entry
+    newDir[0].mem.extents[0].count = dirMem->count;
+    newDir[0].mem.extents[0].used = dirMem->used;
+
     newDir[0].mem.extentCount = 1;
 
     newDir[0].isDir = 1; // Sentinel value of 1 is True
@@ -98,6 +104,7 @@ DE *createDir(int numEntries, DE *parent)
     newDir[0].lastAccessTime = initTime;
     newDir[0].entryCount = actualEntries;
 
+    //if root dir set self to parent
     if (parent == NULL)
     {
         parent = newDir;
@@ -111,7 +118,9 @@ DE *createDir(int numEntries, DE *parent)
 
     for (int i = 0; i < extentFileCount; i++)
     { // copy file extent of parent Dir to ".."
-        newDir[1].mem.extents[i] = parent[0].mem.extents[i];
+        newDir[1].mem.extents[i].block = parent[0].mem.extents[i].block;
+        newDir[1].mem.extents[i].count = parent[0].mem.extents[i].count;
+        newDir[1].mem.extents[i].used = parent[0].mem.extents[i].used;
     }
 
     newDir[1].isDir = parent[0].isDir;
@@ -122,6 +131,7 @@ DE *createDir(int numEntries, DE *parent)
 
     if (writeDir(newDir) == -1)
     { // returns NULL if the directory fails to write
+        printf("Dir failed to write\n");
         return NULL;
     }
 
@@ -135,14 +145,20 @@ int writeDir(DE *newDir)
     // printf("Start lcoation root dir %d", newDir[0].mem.extents[0].block);
 
     // if not a new directory write full extent table of data to disk.
+
+    int offset = 0;
+
+
     for (int i = 0; i < numExtents; i++)
     {
+        char* start = (char*)newDir +offset;
         // all LBAWrite data stored in the '.' entry of the directory
-        uint64_t result = LBAwrite(newDir, newDir[0].mem.extents[i].count, newDir[0].mem.extents[i].block);
+        uint64_t result = LBAwrite(start, newDir[0].mem.extents[i].count, newDir[0].mem.extents[i].block);
         if(result != newDir[0].mem.extents[i].count){
             printf("LBA write failed in writeDir\n");
             return -1;
         }
+        offset+=newDir[0].mem.extents[i].count*BLOCK_SIZE;
     }
 
     return 0;
@@ -222,6 +238,7 @@ int parsePath(const char *pathname, ppInfo *info)
             info->parent = parent;
             info->index = idx;
             strcpy(info->lastElementName, token1);
+            printf("in oparsePath parent.mem.extentCount: %d\n",parent[idx].mem.extentCount);
             free(path);
             return 0;
         }
@@ -256,23 +273,32 @@ DE *loadDir(DE *dir)
 {
     if (dir == NULL)
     {
+        printf("A NULL directory was passed to function\n");
         return NULL; // invalid input
     }
 
     if (dir->isDir != 1)
     {
+        printf("passed dir not a directory\n");
         return NULL; // is not a directory
     }
 
     printf("dir->size: %d\n", dir->size);
 
-    DE *tempDir = malloc(dir->size);
+    int memNeeded = 0;
+
+    for(int i = 0; i<dir->mem.extentCount;i++){
+        memNeeded+=dir->mem.extents[i].count*BLOCK_SIZE;
+    }
+
+    DE *tempDir = malloc(memNeeded);
     if(tempDir == NULL){
         printf("Malloc failed in loadDir\n");
         return NULL;
     }
 
     int extInDir = dir->mem.extentCount;
+    printf("Extents in dir: %d",extInDir);
     int byteOffset = 0;
 
     for (int i = 0; i < extInDir; i++)
@@ -280,10 +306,17 @@ DE *loadDir(DE *dir)
         int loc = dir->mem.extents[i].block;
         int blocks = dir->mem.extents[i].count;
         int bytesToRead = blocks * BLOCK_SIZE;
+        printf("Bytes to Read: %d\n",bytesToRead);
 
-        void *target = (void *)((char *)tempDir + byteOffset);
-        LBAread(target, blocks, loc);
+        
+        LBAread(tempDir+byteOffset, blocks, loc);
         byteOffset += bytesToRead;
+    }
+    printf("ByteOffset %d\n",byteOffset);
+    printf("DirSize: %d\n",dir->size);
+    if(byteOffset!=dir->size){
+        printf("error reading file\n");
+        return NULL;
     }
 
     return tempDir;
@@ -387,4 +420,5 @@ DE *createFile(const char *name, DE *parent)
 
     return entry;
 }
+
 

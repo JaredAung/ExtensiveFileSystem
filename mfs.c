@@ -47,7 +47,7 @@ int fs_mkdir(const char *pathname, mode_t mode)
         return -2;
     }
 
-    DE *newDir = createDir(32, ppi.parent);
+    DE *newDir = createDir(50, ppi.parent);
     printf("createDir completed\n");
 
     int index = findFreeDE(ppi.parent);
@@ -62,7 +62,14 @@ int fs_mkdir(const char *pathname, mode_t mode)
     ppi.parent[index].creationTime = newDir[0].creationTime;
     ppi.parent[index].lastAccessTime = newDir[0].lastAccessTime;
     ppi.parent[index].modificationTime = newDir[0].creationTime;
-    ppi.parent[index].mem = newDir[0].mem;
+    printf("In mkdir, extentCount of newDir: %d\n",newDir[0].mem.extentCount);
+    for(int i =0;i<newDir[0].mem.extentCount;i++){
+        ppi.parent[index].mem.extents[i].block = newDir[0].mem.extents[i].block;
+        ppi.parent[index].mem.extents[i].count = newDir[0].mem.extents[i].count;
+        ppi.parent[index].mem.extents[i].used = newDir[0].mem.extents[i].used;
+
+    }
+    
     
     strncpy(ppi.parent[index].name, ppi.lastElementName, strlen(ppi.lastElementName));
 
@@ -70,7 +77,7 @@ int fs_mkdir(const char *pathname, mode_t mode)
     {
         return -3; // failed write to save dir
     };
-    free(newDir);
+    
     safeFree(ppi.parent);
     return 0;
 }
@@ -210,30 +217,36 @@ int fs_setcwd(char *pathname){
     char  *pathCpy = strdup(pathname);
     
     int retVal = parsePath(pathCpy, ppi);
+    printf("ParsePath Index %d\n", ppi->index);
     free(pathCpy);
     
-    //We need to check for errors
-    if(ppi->index < 0){
-        freePPI(ppi);
-        return -1;
-    }
     //We need to check for errors
     if(retVal < 0){
         freePPI(ppi);
         printf("fs_setcwd:ERROR IN PARSE PATH: %d\n", retVal);
         return retVal;
     }
+
+    //We need to check for errors
+    if(ppi->index < 0){
+        freePPI(ppi);
+        return -1;
+    }
     
-    DE* entry = ppi->parent;
+    
+    DE* entry = &(ppi->parent[ppi->index]);
     //We need to make sure last value is a valid directory
-    printf("Entry[ppi->index].isDir: %d\n",entry[ppi->index].isDir);
+    printf("in setcwd Entry[ppi->index].isDir: %d\n",entry->isDir);
+     printf("In setwcd Entry[ppi->index].Extentcount: %d\n",entry->mem.extentCount);
+     printf("isDir %d\n",entry[ppi->index].isDir);
     if(entry[ppi->index].isDir!=1){
         printf("fs_setcwd: is not a valid path\n");
         freePPI(ppi);
         return -1;
     }
     //We need to load the directory to memory
-    DE* cwd = loadDir(&(entry[ppi->index]));
+    DE* cwd = loadDir(entry);
+    printf("Current Dir extent count: %d\n",cwd[0].mem.extentCount);
 
     if(!cwd){
         printf("setcwd loadDir() failed\n");
