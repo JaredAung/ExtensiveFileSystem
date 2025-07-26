@@ -24,14 +24,14 @@
 #define MAX_NAME_LENGTH 255
 #define BLOCK_SIZE 512
 
-DE *root = NULL;
+
 static DE *g_rootDir = NULL;
 static DE *g_cwdDir = NULL;
 
 int findInDir(DE *parent, char *token1);
 DE *loadDir(DE *dir);
 int setRoot();
-// DE* getRootDir();
+DE* getRoot();
 
 void setRootDir(DE *root)
 {
@@ -169,11 +169,6 @@ int writeDir(DE *newDir)
  */
 int parsePath(const char *pathname, ppInfo *info)
 {
-
-    if (root = NULL)
-    {
-        setRoot();
-    }
 
     if (pathname == NULL)
     { // empty path invalid
@@ -344,40 +339,6 @@ int findInDir(DE *parent, char *token1)
     return -1;
 }
 
-int setRoot()
-{
-    // Load VCB to get root info
-    VCB *tempVCB = malloc(sizeof(VCB));
-    if (LBAread(tempVCB, 1, 0) != 1)
-    {
-        return -1; // read failed
-    };
-
-    int rootLoc = tempVCB->rootDirStart;
-    int rootSize = tempVCB->rootDirBlocks;
-
-    // Get block size info
-    //  struct fs_stat* temp = malloc(sizeof(struct fs_stat));
-    //  fs_stat("/",temp);
-
-    // int block_size =temp->st_blksize;
-    int block_size = tempVCB->blockSize;
-    free(tempVCB);
-
-    // allocate memory for global root
-    root = malloc(block_size * rootSize);
-
-    if (LBAread(root, rootSize, rootLoc) != rootSize)
-    {
-        return -1;
-    };
-    return 0;
-}
-
-DE *getRoot()
-{
-    return root;
-}
 
 DE *createFile(const char *name, DE *parent)
 {
