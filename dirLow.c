@@ -237,7 +237,7 @@ int parsePath(const char *pathname, ppInfo *info)
             info->parent = parent;
             info->index = idx;
             strcpy(info->lastElementName, token1);
-            printf("in parsePath parent.mem.extentCount: %d\n",parent[idx].mem.extents->block);
+            
             free(path);
             return 0;
         }
@@ -363,11 +363,11 @@ DE *createFile(const char *name, DE *parent)
         return NULL;
     }
 
-    DE *entry = &((DE *)parent)[index];
+    DE *entry = &(parent[index]);
 
     memset(entry, 0, sizeof(DE));
-    strncpy(entry->name, name, MAX_NAME_LENGTH - 1);
-    entry->name[MAX_NAME_LENGTH - 1] = '\0';
+    strncpy(entry->name, name, strlen(name)+1);
+    //entry->name[MAX_NAME_LENGTH - 1] = '\0';
 
     entry->isDir = 0;
     entry->size = 0;
