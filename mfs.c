@@ -241,8 +241,8 @@ int fs_setcwd(char *pathname){
      printf("In setwcd Entry[ppi->index].Extentcount: %d\n",entry->mem.extentCount);
      printf("PPI name: %s",entry->name);
      printf("PPI Entry: %d\n",ppi->index);
-     printf("isDir %d\n",entry[ppi->index].isDir);
-    if(entry[ppi->index].isDir!=1){
+     printf("setcwd isDir %d\n",entry->isDir);
+    if(entry->isDir!=1){
         printf("fs_setcwd: is not a valid path\n");
         freePPI(ppi);
         return -1;
