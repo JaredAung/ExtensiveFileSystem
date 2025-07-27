@@ -62,14 +62,15 @@ int fs_mkdir(const char *pathname, mode_t mode)
     ppi.parent[index].creationTime = newDir[0].creationTime;
     ppi.parent[index].lastAccessTime = newDir[0].lastAccessTime;
     ppi.parent[index].modificationTime = newDir[0].creationTime;
-    printf("In mkdir, extentCount of newDir: %d\n",newDir[0].mem.extentCount);
+    
     for(int i =0;i<newDir[0].mem.extentCount;i++){
         ppi.parent[index].mem.extents[i].block = newDir[0].mem.extents[i].block;
         ppi.parent[index].mem.extents[i].count = newDir[0].mem.extents[i].count;
         ppi.parent[index].mem.extents[i].used = newDir[0].mem.extents[i].used;
 
     }
-    
+    ppi.parent[index].mem.extentCount = newDir[0].mem.extentCount;
+    printf("In mkdir, extentCount of newDir: %d\n",newDir[0].mem.extentCount);
     
     strncpy(ppi.parent[index].name, ppi.lastElementName, strlen(ppi.lastElementName));
 
@@ -238,6 +239,8 @@ int fs_setcwd(char *pathname){
     //We need to make sure last value is a valid directory
     printf("in setcwd Entry[ppi->index].isDir: %d\n",entry->isDir);
      printf("In setwcd Entry[ppi->index].Extentcount: %d\n",entry->mem.extentCount);
+     printf("PPI name: %s",entry->name);
+     printf("PPI Entry: %d\n",ppi->index);
      printf("isDir %d\n",entry[ppi->index].isDir);
     if(entry[ppi->index].isDir!=1){
         printf("fs_setcwd: is not a valid path\n");

@@ -122,6 +122,7 @@ DE *createDir(int numEntries, DE *parent)
         newDir[1].mem.extents[i].count = parent[0].mem.extents[i].count;
         newDir[1].mem.extents[i].used = parent[0].mem.extents[i].used;
     }
+    newDir[1].mem.extentCount = parent[0].mem.extentCount;
 
     newDir[1].isDir = parent[0].isDir;
 
@@ -172,12 +173,15 @@ int parsePath(const char *pathname, ppInfo *info)
 
     if (pathname == NULL)
     { // empty path invalid
+
+        printf("Path invalid\n");
         return -1;
     }
 
     int pathLength = strlen(pathname);
     if (pathLength < 1)
     {
+        printf("Path length too short\n");
         return -1;
     }
 
@@ -233,7 +237,7 @@ int parsePath(const char *pathname, ppInfo *info)
             info->parent = parent;
             info->index = idx;
             strcpy(info->lastElementName, token1);
-            printf("in oparsePath parent.mem.extentCount: %d\n",parent[idx].mem.extentCount);
+            printf("in parsePath parent.mem.extentCount: %d\n",parent[idx].mem.extents->block);
             free(path);
             return 0;
         }
@@ -266,6 +270,8 @@ int parsePath(const char *pathname, ppInfo *info)
 
 DE *loadDir(DE *dir)
 {
+
+    printf("Start of load dir ext count %d\n",dir->mem.extentCount);
     if (dir == NULL)
     {
         printf("A NULL directory was passed to function\n");
@@ -309,11 +315,12 @@ DE *loadDir(DE *dir)
     }
     printf("ByteOffset %d\n",byteOffset);
     printf("DirSize: %d\n",dir->size);
-    if(byteOffset!=dir->size){
-        printf("error reading file\n");
-        return NULL;
-    }
+   // if(byteOffset!=dir->size){
+   //     printf("error reading file\n");
+   //     return NULL;
+   // }
 
+   printf("End of load dir extents count: %d",tempDir->mem.extentCount);
     return tempDir;
 }
 
@@ -325,7 +332,7 @@ DE *loadDir(DE *dir)
 int findInDir(DE *parent, char *token1)
 {
     int numEntries = parent[0].entryCount;
-    printf("Token1 %s", token1);
+    printf("Token1 %s\n", token1);
 
     for (int i = 0; i < numEntries; i++)
     {
