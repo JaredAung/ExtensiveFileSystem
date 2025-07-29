@@ -1,15 +1,16 @@
 /**************************************************************
 * Class::  CSC-415-02 Summer 2025
 * Name::Phillip Davis Igor Tello Jared Aung Preet Vithani
-* Student IDs::
+* Student IDs:: 923980431, 923043807, 922772159, 923575806
 * GitHub-Name::R3plug
 * Group-Name::Team Kentucky Kernels
 * Project:: Basic File System
 *
 * File:: fsPath.h
 *
-* Description:: 
-*	
+* Description:: This file is a header file for
+* functions to manage the stack, clean, clean paths and 
+* convert the stack to a string representation of the path.
 *
 **************************************************************/
 
