@@ -141,6 +141,11 @@ DE *createDir(int numEntries, DE *parent)
 
 int writeDir(DE *newDir)
 {
+    if(newDir==NULL){
+        printf("WriteDir was passed a NULL directory\n");
+        return -1;
+    }
+
     int numExtents = newDir[0].mem.extentCount; // Number of extents that will need to be written
     // printf("Extents count for root dir %d", numExtents);
     // printf("Start lcoation root dir %d", newDir[0].mem.extents[0].block);
