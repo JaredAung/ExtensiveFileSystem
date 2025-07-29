@@ -370,60 +370,108 @@ int cmd_cp (int argcnt, char *argvec[])
 /****************************************************
 *  Move file commmand
 ****************************************************/
-int cmd_mv (int argcnt, char *argvec[])
-	{
-#if (CMDMV_ON == 1)				
-	
+int cmd_mv(int argcnt, char *argvec[]) {
+#if (CMDMV_ON == 1)
 	// **** TODO ****  For you to implement	
-	if(argcnt!=3){
-		printf("incorrect argument count\n");
-		return -1;
-	}
-	char* src = argvec[1];
-	char* dest = argvec[2];
+    if (argcnt != 3) {
+        printf("Usage: mv source_path dest_directory\n");
+        return -1;
+    }
 
-	ppInfo* srcInfo = malloc(sizeof(ppInfo));
-	ppInfo* destInfo = malloc(sizeof(ppInfo));
+    const char *srcPath = argvec[1];
+    const char *destDirPath = argvec[2];
 
-	if(parsePath(src,srcInfo)!=0){
-		printf("Invalid src Path\n");
-		return -1;
-	};
+    ppInfo *srcInfo = malloc(sizeof(ppInfo));
+    ppInfo *destInfo = malloc(sizeof(ppInfo));
+    if (!srcInfo || !destInfo) {
+        printf("Memory allocation failed\n");
+        return -1;
+    }
 
-	if(srcInfo->parent[srcInfo->index].isDir!=0){
-		printf("Not a file cannot move\n");
-		return -1;
-	}
+    // Parse source
+    if (parsePath(srcPath, srcInfo) != 0 || srcInfo->index < 0) {
+        printf("Invalid source path\n");
+        free(srcInfo);
+        free(destInfo);
+        return -1;
+    }
 
-	if(parsePath(dest, destInfo)!=0){
-		printf("Invalid dest path\n");
-		return -1;
-	};
+    DE *srcEntry = &srcInfo->parent[srcInfo->index];
 
-	if(destInfo->parent->isDir!=1){
-		printf("Not a directory cannot move file here\n");
-		return -1;
-	}
+    // Prevent moving '.' or '..'
+    if (strcmp(srcEntry->name, ".") == 0 || strcmp(srcEntry->name, "..") == 0) {
+        printf("Cannot move '.' or '..'\n");
+        free(srcInfo);
+        free(destInfo);
+        return -1;
+    }
 
-	int destEntries = destInfo->parent->size/BLOCK_SIZE;
+    // Parse destination and ensure it exists and is a directory
+    if (parsePath(destDirPath, destInfo) != 0 || destInfo->index < 0) {
+        printf("Destination path is invalid\n");
+        free(srcInfo);
+        free(destInfo);
+        return -1;
+    }
 
-	for(int i = 0; i<destEntries;i++){
-		if(destInfo->parent[i].name[0]=='\0'){//Check for empty directory
-			memcpy(&(destInfo->parent[i]),&(srcInfo->parent[srcInfo->index]),sizeof(DE));//Copy the directory entry from source to dest
-			srcInfo->parent[srcInfo->index].name[0] = '\0';	//Update empty entry sentinel values
-			srcInfo->parent[srcInfo->index].isDir = 0;
-			break;
-		}
-	}
+    DE *destDirEntry = &destInfo->parent[destInfo->index];
+    if (destDirEntry->isDir != 1) {
+        printf("Destination is not a directory\n");
+        free(srcInfo);
+        free(destInfo);
+        return -1;
+    }
 
-	free(srcInfo);
-	free(destInfo);
+    // Load destination directory contents
+    DE *destParent = loadDir(destDirEntry);
+    if (!destParent) {
+        printf("Failed to load destination directory\n");
+        free(srcInfo);
+        free(destInfo);
+        return -1;
+    }
 
+    // Find empty slot or append at end
+    int destSlot = -1;
+    for (int i = 0; i < destParent[0].entryCount; i++) {
+        if (destParent[i].name[0] == '\0') {
+            destSlot = i;
+            break;
+        }
+    }
 
+    if (destSlot == -1) {
+        destSlot = destParent[0].entryCount;
+    }
 
+    // Copy entry to destination slot
+    memcpy(&destParent[destSlot], srcEntry, sizeof(DE));
+    strncpy(destParent[destSlot].name, srcEntry->name, MAX_NAME_LENGTH);
+
+    // Update metadata
+    destParent[0].entryCount++;
+    destParent[0].modificationTime = time(NULL);
+
+    // Clear source entry
+    memset(srcEntry, 0, sizeof(DE));
+    srcInfo->parent[0].modificationTime = time(NULL);
+
+    // Write both directories
+    if (writeDir(destParent) != 0 || writeDir(srcInfo->parent) != 0) {
+        printf("Failed to write updated directories\n");
+        free(destParent);
+        free(srcInfo);
+        free(destInfo);
+        return -1;
+    }
+
+    free(destParent);
+    free(srcInfo);
+    free(destInfo);
+    return 0;
 #endif
-	return 0;
-	}
+    return -1;
+}
 
 /****************************************************
 *  Make Directory commmand
